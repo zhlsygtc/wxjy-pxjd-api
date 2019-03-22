@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.app.APP_001_010.ApiNearbyInstMapper">
+    <select id="getNearbyInst" resultType="Hb65">
+        select (select #{fore}||m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=a.bus_uuid) photo_url,
+        (select code_name from code_value where code_type = 'ACA109' and code_value=h.aca111) aca111_name,
+        s.name,
+        (select code_name from code_value where code_type = 'ACA11A' and code_value=h.aca11a) aca11a,
+        (SELECT count(1) from hb59 WHERE chb055= h.chb055 and aae100 = '1' and eae052 != '9') total,
+        to_char(h.chb107,'yyyy.mm.dd') chb107,
+        to_char(h.chb108,'yyyy.mm.dd') chb108,
+        h.chb055,
+        h.aab001,
+        h.gps_lon,
+        h.gps_lat,
+        ( CASE WHEN to_char( h.chb208, 'yyyymmdd' ) > TO_CHAR( SYSDATE - 7, 'yyyymmdd' ) THEN 'true' ELSE 'false' END ) flag,
+
+        h.aca111,
+        h.chb106,
+        h.chb130
+        from hb65 h,smt_group s,ad01 a
+        where h.aab001=s.groupid and h.aab001=a.aab001
+    </select>
+</mapper>

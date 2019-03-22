@@ -1,0 +1,782 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.train.PXYW_001_010.ApiClassPlanMapper">
+    <!-- 查询培训计划信息列表 -->
+    <select id="getPlanList" parameterType="Hb65" resultType="Hb65">
+    select
+        chb055,
+        chb130,
+        aab001,
+        (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102=c.aca111) aca111,
+        (select code_name from code_value where code_type = 'ACA11A' and code_value=c.aca11a) aca11a,
+        chb105,
+        chb106,
+        (select count(1) from hc61 a,hb59 b where a.chc111 = b.chc111 and b.chb055 = c.chb055) chb106_s,
+        decode(sign(chb106-(select count(1) from hc61 a,hb59 b where a.chc111 = b.chc111 and b.chb055 = c.chb055)),'1','1','0') flag,<!-- 可报名则给予报名标志 -->
+        to_char(chb107, 'yyyy-MM-dd') chb107,
+        to_char(chb108, 'yyyy-MM-dd') chb108,
+        (select code_name from code_value where code_type = 'CHB103' and code_value=c.chb103) chb103,
+        aae004,
+        acb502,
+        (select code_name from code_value where code_type = 'CHB104' and code_value=c.chb104) chb104
+    from
+        Hb65 c
+    where
+         aae100 = '1'
+    and  
+    	aab001 = #{aab001}
+        <if test="aca111!=null">
+            and aca111=#{aca111}
+        </if>
+        <if test="chb103!=null">
+            and chb103 in 
+            <foreach item="item" collection="chb103s" open="(" separator="," close=")">
+            	#{item}
+        	</foreach>
+        </if>
+        <if test="aca11a!=null">
+            and aca11a in 
+            <foreach item="item" collection="aca11as" open="(" separator="," close=")">
+            	#{item}
+        	</foreach>
+        </if>
+        <if test="chb107!=null">
+        	and to_char(chb107,'yyyy-MM-dd') <![CDATA[>=]]> #{chb107}
+        </if>
+        <if test="chb108!=null">
+        	and to_char(chb108,'yyyy-MM-dd') <![CDATA[<=]]> #{chb108}
+        </if>
+        <if test="chb104!=null">
+            and chb104 in 
+            <foreach item="item" collection="chb104s" open="(" separator="," close=")">
+            	#{item}
+        	</foreach>
+        </if>
+   			order by aae036 desc
+    </select>
+    
+    
+	<!-- 保存培训计划信息 -->
+    <insert id="addPlan" parameterType="Hb65">
+        <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chb055">
+            select sys_guid() from dual
+        </selectKey>
+        insert into HB65(
+        	chb055,
+        	chb130,
+        	aab001,
+        	aca111,
+        	chb105,
+        	chb106,
+        	chb107,
+        	chb108,
+        	chb103,
+        	aca11a,
+        	aae100,
+        	aae011,
+        	aae036,
+        	aae004,
+        	acb502,
+        	gps,
+        	gps_lon,
+        	gps_lat,
+        	chb104,
+        	aab301
+        )
+        values(
+        	#{chb055},
+        	#{chb130},
+			#{aab001},
+			#{aca111},
+			#{chb105},
+			#{chb106},
+			to_date(#{chb107}, 'yyyy-MM-dd'),
+			to_date(#{chb108}, 'yyyy-MM-dd'),
+			#{chb103},
+			#{aca11a},
+			'1',
+			#{aae011},
+			SYSDATE,
+			#{aae004},
+			#{acb502},
+			#{gps},
+			#{gps_lon},
+			#{gps_lat},
+			'1',
+			#{aab301}
+           )
+    </insert>
+    <!-- 根据ID查询开班计划信息 -->
+    <select id="getPlanById" parameterType="String" resultType="Hb65">
+	   select
+        chb055,
+        chb130,
+        aab001,
+        aca111,
+        (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102=aca111) aca111_s,
+        aca11a,
+        (select code_name from code_value where code_type = 'ACA11A' and code_value=aca11a) aca11a_s,
+        chb105,
+        chb106,
+        to_char(chb107, 'yyyy-MM-dd') chb107,
+        to_char(chb108, 'yyyy-MM-dd') chb108,
+        chb103,
+        (select code_name from code_value where code_type = 'CHB103' and code_value=chb103) chb103_s,
+        aae004,
+        acb502,
+        (select code_name
+             from code_value
+	         where code_type = 'AAC183'
+             and code_value = (select substr(par_code_value, 0, instr(par_code_value, ',') - 1)
+		                               from code_value
+		                              where code_type = 'ACA109'
+		                                and code_value = a.aca111)) aca113,
+	        (select code_name
+          	 from code_value
+        	 where code_type = 'ACA110'
+             and code_value =
+	               (select substr(par_code_value, instr(par_code_value, ',') + 1, length(par_code_value)-1)
+		                               from code_value
+		                              where code_type = 'ACA109'
+		                                and code_value = a.aca111)) aca112,
+        gps,
+       	gps_lon,
+       	gps_lat,
+       	aab301,
+       	(select name from smt_group where groupid = a.aab301) aab301_s
+    from
+        Hb65 a
+    where
+        aae100 = '1'
+    and  
+    	chb055 = #{chb055}
+    </select>
+    
+    <!-- 根据ID查询开班计划信息（大丰） -->
+    <select id="getPlanById_df" parameterType="String" resultType="Hb65">
+	   select
+        chb055,
+        chb130,
+        aab001,
+        aca111,
+        (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102=aca111) aca111_s,
+        aca11a,
+        (select code_name from code_value where code_type = 'ACA11A' and code_value=aca11a) aca11a_s,
+        chb105,
+        chb106,
+        to_char(chb107, 'yyyy-MM-dd') chb107,
+        to_char(chb108, 'yyyy-MM-dd') chb108,
+        chb103,
+        (select code_name from code_value where code_type = 'CHB103' and code_value=chb103) chb103_s,
+        aae004,
+        acb502,
+        (select code_name
+		          from code_value
+		         where code_type = 'ACA119'
+		           and code_level = '2'
+		           and code_value = (select par_code_value
+		                               from code_value
+		                              where code_type = 'ACA109'
+		                                and code_value =  a.aca111 and code_level = '3' )) aca113,
+	    (select code_name
+			          from code_value
+			         where code_type = 'ACA119'
+			           and code_level = '1'
+			           and code_value =(select par_code_value 
+			                                       from code_value
+			                                      where code_type = 'ACA119' and code_level = '2'
+			                                        and code_value = (
+			                                        				 select par_code_value 
+			                                        				   from code_value
+			                                        				  where code_type = 'ACA109' and code_level = '3' 
+			                                        				    and code_value = a.aca111))) aca112,
+        gps,
+       	gps_lon,
+       	gps_lat,
+       	aab301,
+       	(select name from smt_group where groupid = a.aab301) aab301_s
+    from
+        Hb65 a
+    where
+        aae100 = '1'
+    and  
+    	chb055 = #{chb055}
+    </select>
+    
+    <!-- 根据ID查询开班计划信息（陕西） -->
+    <select id="getPlanById_sx" parameterType="String" resultType="Hb65">
+	   select
+        chb055,
+        chb130,
+        aab001,
+        aca111,
+        (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102=aca111) aca111_s,
+        aca11a,
+        (select code_name from code_value where code_type = 'ACA11A' and code_value=aca11a) aca11a_s,
+        chb105,
+        chb106,
+        to_char(chb107, 'yyyy-MM-dd') chb107,
+        to_char(chb108, 'yyyy-MM-dd') chb108,
+        chb103,
+        (select code_name from code_value where code_type = 'CHB103' and code_value=chb103) chb103_s,
+        aae004,
+        acb502,
+        (select aca112
+          from ca11
+         where grade = '2'
+           and aca111 = (select aca212
+                           from ca11
+                          where aca111 =  a.aca111 and grade = '3' )) aca113,
+	    (select aca112
+          from ca11
+         where grade = '1'
+           and aca111 =(select aca212 
+                          from ca11
+                         where grade = '2'
+                           and aca111 = (
+                           				 select aca212 
+                           				   from ca11
+                           				  where grade = '3' 
+                           				    and aca111 = a.aca111))) aca112,
+        gps,
+       	gps_lon,
+       	gps_lat,
+       	aab301,
+       	(select name from smt_group where groupid = a.aab301) aab301_s
+    from
+        Hb65 a
+    where
+        aae100 = '1'
+    and  
+    	chb055 = #{chb055}
+    </select>
+    
+    <!-- 获取smtgroup对象 -->
+     <select id="getSmtGroupById" parameterType="String" resultType="SmtGroup">
+	    select
+	    	linkman,
+	    	tel,
+	    	address
+	    from
+	        smt_group
+	    where
+	    	groupid=#{groupid}
+    </select>
+    <!-- 获取该机构对应的行政区划 -->
+    <select id="getCompanyAab301" parameterType="String" resultType="SmtGroup">
+        select groupid parentid from smt_group where division_level = '3'
+       		start with groupid = #{groupid} connect by prior parentid = groupid
+    </select>
+    <!-- 获取机构培训资质 -->
+  	<select id="getAca111List" parameterType="CodeValue" resultType="CodeValue">
+  	select 
+         code_name,code_value,code_type  
+     	from ad01 t,hb62 b,code_value c
+    	where t.aab001 = #{id}
+    	and t.aab001 = b.aab001
+       and b.aca111 = c.code_seq
+       and c.code_type = 'ACA109'
+       and b.aae100='1'
+  	</select>
+  	 <!-- 获取机构培训资质 （陕西）-->
+  	<select id="getAca111List_sx" parameterType="CodeValue" resultType="CodeValue">
+  	select 
+         aca112 code_name,c.aca111 code_value,'ACA109' code_type  
+     	from ad01 t,hb62 b,ca11 c
+    	where t.aab001 = #{id}
+    	and t.aab001 = b.aab001
+       and b.aca111 = c.aca110
+       and b.aae100='1'
+  	</select>
+  	<!-- 获取资质编号 获取资质 -->
+  	<select id="getAca11aList" parameterType="String" resultType="CodeValue">
+  	select 
+         code_name,code_value,code_type  
+     	from ad01 t,hb62 b,code_value c
+    	where t.aab001 = #{id}
+    	and b.aca111 = (select aca110 from ca11 where aca111 = #{aca111})
+    	and t.aab001 = b.aab001 
+    	and b.aca11a = c.code_value 
+    	and c.code_type = 'ACA11A' 
+    	and b.aae100='1'
+  	</select>
+  	<!-- 获取上级部门 -->
+  	<select id="getAab301List" parameterType="CodeValue" resultType="CodeValue">
+  	select groupid code_value,name code_name from smt_group 
+  	where parentid in
+		(select parentid from smt_group 
+			where groupid in 
+				(select parentid from smt_group 
+					where length(groupid) = '32' and division_level = '9'))
+	and status = '1'
+  	</select>
+	<!-- 根据专业名称查询培训工种名称及专业类别 -->
+	<select id="getAca112" parameterType="String" resultType="Hb65">
+	    	select ((select code_name
+		          from code_value
+		         where code_type = 'AAC183'
+		           and code_value = (select substr(par_code_value, 0, instr(par_code_value, ',') - 1)
+		                               from code_value
+		                              where code_type = 'ACA109'
+		                                and code_value = #{aca111})) || ',' ||
+			       (select code_name
+			          from code_value
+			         where code_type = 'ACA110'
+			           and code_value =(select substr(par_code_value, instr(par_code_value, ',') + 1, length(par_code_value)-1)
+			                                       from code_value
+			                                      where code_type = 'ACA109'
+			                                        and code_value = #{aca111}))) as aca111
+		  from dual 
+    </select>
+    
+    <!-- 根据专业名称查询培训工种名称及专业类别 (大丰)-->
+	<select id="getAca112_df" parameterType="String" resultType="Hb65">
+	    	select ((select code_name
+		          from code_value
+		         where code_type = 'ACA119'
+		           and code_level = '2'
+		           and code_value = (select par_code_value
+		                               from code_value
+		                              where code_type = 'ACA109'
+		                                and code_value =  #{aca111} and code_level = '3' )) || ',' ||
+			       (select code_name
+			          from code_value
+			         where code_type = 'ACA119'
+			           and code_level = '1'
+			           and code_value =(select par_code_value 
+			                                       from code_value
+			                                      where code_type = 'ACA119' and code_level = '2'
+			                                        and code_value = (
+			                                        				 select par_code_value 
+			                                        				   from code_value
+			                                        				  where code_type = 'ACA109' and code_level = '3' 
+			                                        				    and code_value = #{aca111})))) as aca111
+		  from dual 
+    </select>
+    
+    <!-- 根据专业名称查询培训工种名称及专业类别 (陕西)-->
+	<select id="getAca112_sx" parameterType="String" resultType="Hb65">
+	    	select ((select aca112
+		          from ca11
+		         where grade = '2'
+		           and aca111 = (select aca212
+	                               from ca11
+	                              where aca111 =  #{aca111} and grade = '3' )) || ',' ||
+			       (select aca112
+			          from ca11
+			         where grade = '1'
+			           and aca111 =(select aca212 
+                                       from ca11
+                                      where grade = '2'
+                                        and aca111 = (select aca212 
+                                       				   from ca11
+                                       				  where grade = '3' 
+                                       				    and aca111 = #{aca111})))) as aca111
+		  from dual 
+    </select>
+    
+    <!-- 查询培训学员信息 -->
+    <select id="signedStuForLook" parameterType="Student" resultType="Student">
+    	select
+    		a.chc111,
+    		b.chb055,
+	        a.aac003,
+	        a.aac002,
+	        (select code_name from code_value where code_type = 'AAC004' and code_value=a.aac004) aac004,
+	        (select code_name from code_value where code_type = 'AAC011' and code_value=a.aac011) aac011,
+	        decode(length(aac002),'18',(to_char(sysdate,'yyyy')-substr(aac002,7,4)),(to_char(sysdate,'yyyy')-('19'||substr(aac002,7,2)))) age,
+	        a.aae015,
+	        a.aae005,
+	        a.aac009,
+	        (select code_name from code_value where code_type = 'CHC002' and code_value=a.chc002) chc002,
+	        a.eec357,
+	        a.eec358,
+	        (select code_describe from code_value where code_type = 'AAB301' and code_value = a.eec357) eec357_name,
+	        (select code_describe from code_value where code_type = 'AAB301' and code_value = a.eec358) eec358_name,
+	        a.aac026,
+	        a.aae013
+	    from
+	        Hc61 a,hb59 b
+	    where
+	        a.aae100 = '1'
+	    and  
+	    	a.chc111 = b.chc111
+	    and
+	    	b.chb055 = #{chb055}
+    </select>
+    <!-- 修改培训计划信息 -->
+    <update id="updatePlan" parameterType="Hb65">
+        update hb65
+        set(
+        	chb130,
+        	aca111,
+        	chb105,
+        	chb106,
+        	chb107,
+        	chb108,
+        	chb103,
+        	aca11a,
+        	aae011,
+        	aae036,
+        	aae004,
+        	acb502,
+        	gps,
+        	gps_lon,
+        	gps_lat,
+        	aab301
+        )
+        =(	select
+			#{chb130},
+			#{aca111},
+			#{chb105},
+			#{chb106},
+			to_date(#{chb107}, 'yyyy-MM-dd'),
+			to_date(#{chb108}, 'yyyy-MM-dd'),
+			#{chb103},
+			#{aca11a},
+			#{aae011},
+			SYSDATE,
+			#{aae004},
+			#{acb502},
+			#{gps},
+			#{gps_lon},
+			#{gps_lat},
+			#{aab301}
+			from dual
+           )
+           where 
+           chb055 = #{chb055}
+    </update>
+    <!-- 删除培训计划(改为无效) -->
+    <update id="delPlan" parameterType="Hb65">
+	    update hb65
+	    set aae100 = '0'
+	    where chb055 = #{chb055}
+    </update>
+    <!-- 切换培训状态 -->
+    <update id="changePlan" parameterType="Hb65">
+	    update hb65
+	    set chb104 = decode (#{chb104},'报名中','2','停止报名','1','0')
+	    where chb055 = #{chb055}
+    </update>
+    <!-- 根据ID查询学员信息 -->
+    <select id="findStuById" parameterType="Student" resultType="Hc61">
+	select
+		aac002,
+		chc111,
+        aac003,
+        aac004,
+        aac005,
+        aac011,
+        aae015,
+        aae005,
+        aac009,
+        chc002,
+        eec357,
+        eec358,
+        (select code_describe from code_value where code_type = 'AAB301' and code_value = a.eec357) eec357_name,
+        (select code_describe from code_value where code_type = 'AAB301' and code_value = a.eec358) eec358_name,
+        aac026,
+        aae013,
+        bus_uuid,
+    	(select aaa005 from aa01 where aaa001 = 'fileModule')||(select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=a.bus_uuid) photo_url
+    from
+        Hc61 a
+    where
+        aae100 = '1'
+    and  
+    	aac002 = #{aac002}
+    <if test="baseinfoid!=null">
+    	and 
+    	aab001 = #{baseinfoid}
+    </if>
+    
+    </select>
+    <!-- 根据ID查询学员信息 -->
+    <select id="findFileById" parameterType="Student" resultType="Hc61">
+	select listagg(file_rel_path,',')  within group(order by m.file_addtime) fujian_url
+			from s_file_record m,s_bus_file_record n 
+				where m.file_uuid=n.file_uuid 
+					and n.file_bus_id = #{aac002} 
+					and n.file_bus_type = '010406' 
+					order by m.file_addtime
+    </select>
+    <!-- 新增学员信息 -->
+    <insert id="addStu" parameterType="Student">
+        <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chc111">
+            select sys_guid() from dual
+        </selectKey>
+        insert into Hc61(
+        	chc111,
+        	aac002,
+        	chc002,
+        	aae013,
+        	aac003,
+        	aac004,
+        	aac006,
+        	aac011,
+        	aae005,
+        	aac026,
+        	aac009,
+        	chc008,
+        	eec357,
+        	eec358,
+        	aae015,
+        	aac005,
+        	aae011,
+        	ecc064,
+        	aae036,
+        	eae052,
+        	aae100,
+        	isselected,
+        	chc066,
+        	bus_uuid,
+        	aab001
+        )
+        values(
+        	#{chc111},
+			#{aac002},
+			#{chc002},
+			#{aae013},
+			#{aac003},
+			decode(length(#{aac002}),'18',
+				decode(mod(to_number(substr(#{aac002},17, 1)),2),0,'2','1'),
+				decode(mod(to_number(substr(#{aac002},14, 1)),2),0,'2','1')),
+		    to_date(decode(length(#{aac002}),'18',substr(#{aac002},7,8),'19'||substr(#{aac002},7,6)),'yyyy-MM-dd'),
+			#{aac011},
+			#{aae005},
+			#{aac026},
+			#{aac009},
+			#{aac009},
+			#{eec357},
+			#{eec358},
+			#{aae015},
+			#{aac005},
+			#{aae011},
+			sysdate,
+			sysdate,
+			'1',
+			'1',
+			'0',
+			(select count(1)+1 from hb59 where chb055 = #{chb055}),
+			#{bus_uuid},
+			#{baseinfoid}
+           ) 
+    </insert>
+    <!-- 修改学员信息 -->
+    <update id="updateStu" parameterType="Student">
+        update hc61
+        set(
+        	chc002,
+        	aae013,
+        	aac003,
+        	aac011,
+        	aae005,
+        	aac026,
+        	aac009,
+        	chc008,
+        	eec357,
+        	eec358,
+        	aae015,
+        	aae036
+        )
+        =(	select
+			#{chc002},
+			#{aae013},
+			#{aac003},
+			#{aac011},
+			#{aae005},
+			#{aac026},
+			#{aac009},
+			#{aac009},
+			#{eec357},
+			#{eec358},
+			#{aae015},
+			sysdate
+			from dual
+           )
+           where 
+           chc111 = #{chc111}
+    </update>
+    <!-- 查询学员是否已报名该计划 -->
+    <select id="findStuWithPlan" parameterType="Student" resultType="String">
+	select
+        count(1)
+    from
+        Hc61 a,Hb59 b
+    where
+        a.aae100 = '1'
+    and
+    	a.chc111 = b.chc111
+    and
+    	aac002 = #{aac002}
+    and
+    	chb055 = #{chb055}
+    </select>
+    <!-- 学员报名 -->
+    <insert id="signUp" parameterType="Student">
+        <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chb059">
+            select sys_guid() from dual
+        </selectKey>
+        insert into Hb59(
+        	chb059,
+        	chc111,
+        	chb055,
+        	chb071,
+        	aae011,
+        	ecc064,
+        	aae100
+        )
+        values(
+        	#{chb059},
+			#{chc111},
+			#{chb055},
+			'02',
+			#{aae011},
+			sysdate,
+			'1'
+           )
+    </insert>
+      <!-- 更新学员头像信息 -->
+  <update id="uploadHc61Photo" parameterType="Student">
+    update hc61
+    set bus_uuid = #{bus_uuid,jdbcType=VARCHAR}
+    where chc111 = #{chc111,jdbcType=VARCHAR}
+  </update>
+   <!-- 查询学员本年份报名的培训类别和当前培训类别是否一致 -->
+    <select id="trainTypeCount" parameterType="Student" resultType="String">
+	select
+        count(1)
+    from
+        Hb68 a,Hc60 b
+    where
+        a.aae100 = '1'
+    and 
+    	b.aae100 = '1' and b.eae052 = '1'
+    and
+    	a.chb068 = b.chb068
+    and
+    	b.aac002 = #{aac002}
+    and
+    	a.chb103 != (select chb103 from hb65 where chb055 = #{chb055})
+    and 
+    	substr(a.chb100,'0','4')=to_char(sysdate,'yyyy')
+    </select>
+    <!-- 查询学员本年份报名的培训工种是否重复 -->
+    <select id="trainProfeCount" parameterType="Student" resultType="String">
+	select
+        count(1)
+    from
+        Hb68 a,Hc60 b
+    where
+        a.aae100 = '1'
+    and
+    	b.aae100 = '1' and b.eae052 = '1'
+    and
+    	a.chb068 = b.chb068
+    and
+    	b.aac002 = #{aac002}
+    and
+    	a.aca111 = (select aca111 from hb65 where chb055 = #{chb055})
+    and 
+    	substr(a.chb100,'0','4')=to_char(sysdate,'yyyy')
+    </select>
+    <!-- 删除图片 -->
+    <delete id="delFilePicById" >
+		delete from s_file_record where file_path = #{picId}
+    </delete>
+    <!-- 删除图片描述信息等数据 -->
+    <delete id="delBusFilePicById" >
+		delete from s_bus_file_record where file_uuid = (select file_uuid from s_file_record where file_path = #{picId})
+    </delete>
+    
+    <!-- 校验是否在职人员 -->
+    <select id="getPersonWorkStatus" parameterType="String" resultType="String">
+    	select count(1) from ac01@dfsi where aac002 = #{aac002} and aac008 = '01' 
+    </select>
+    
+    <!-- 校验本年度是否已享受就业培训补贴 -->
+    <select id="getPersonSubsidyStatus" parameterType="String" resultType="String">
+        select count(1) from dd30 where aac001 in (select eec001 from ce01 where aac002 = #{aac002}) and aae100 = '1' and to_char(add562,'yyyy')=to_char(sysdate,'yyyy')
+    </select>
+    
+    <!-- 五年内初中高培训各一次 -->
+    <select id="checkHc60" parameterType="String" resultType="String">
+    	select count(1) from hc60 where aac002 = #{aac002} 
+    	   and aae100 = '1'
+    	   and aca11a = #{aca11a}
+    	   and to_char(ADD_MONTHS(sysdate,-60),'yyyyMM') <![CDATA[<=]]> aae001
+    </select>
+    <select id="checkSignPlan" parameterType="String" resultType="String">
+    	select count(1) from hc61 a ,hb65 b,hb59 c 
+    	 where a.aac002 = #{aac002} 
+    	   and b.chb055 != #{chb055} 
+    	   and a.chc111 = c.chc111 
+    	   and b.chb055 = c.chb055 
+    	   and b.aca11a = #{aca11a}
+    	   and c.aae100 = '1' 
+    	   and a.aae100 = '1'
+    	   and b.aae100 = '1'
+    	   and to_char(ADD_MONTHS(sysdate,-60),'yyyyMMdd') <![CDATA[<=]]> to_char(b.chb107,'yyyyMMdd')
+    </select>
+     <!-- 校验临时表数据 -->
+	<select  id="executeProc" statementType="CALLABLE" parameterType="SysExcelBatch" timeout="3600">
+	    {call pkg_hc61_excel_data_imp_bj.dealWith_hc61_temp_imp_update2(
+	    #{excel_batch_number,mode=IN,jdbcType=INTEGER},
+	    #{excel_batch_assistid,mode=IN,jdbcType=VARCHAR},
+	    #{excel_batch_rt_code,mode=OUT,jdbcType=VARCHAR},
+	    #{excel_batch_rt_msg,mode=OUT,jdbcType=VARCHAR}
+	    )} 
+	</select>
+	<!-- 获取当前培训计划剩余可报名人数 -->
+    <select id="getPeople" parameterType="Hc61_temp" resultType="String">
+		select (chb106 - (select count(1) from hb59 where aae100 = '1' and chb055 = (select assistid from hc61_temp where acc117 = #{acc117} and rownum = '1'))) count
+		from hb65 where chb055 = (select assistid from hc61_temp where acc117 = #{acc117} and rownum = '1') and aae100 = '1'
+    </select>
+    <!-- 查询导出word所需信息 -->
+     <select id="exportDJK" parameterType="Student" resultType="Student">
+	   select 
+		    t.chc111,
+		    t.aac003,
+		    t.chc003,
+		    (select code_name from code_value where code_type='AAC004' and code_value = t.aac004) aac004,
+		    t.aac002,
+		    (select code_name from code_value where code_type='AAC005' and code_value = t.aac005) aac005,
+		    t.aae005,
+		    to_char(t.aac006,'yyyy-MM-dd') aac006_string,
+		    to_char(t.aac007,'yyyy-MM-dd') aac007_string,
+		    (select code_name from code_value where code_type='CHC002' and code_value = t.chc002) chc002,
+		    (select code_name from code_value where code_type='AAC011' and code_value = t.aac011) aac011,
+		    (select code_describe from code_value where code_value = t.eec357 and code_type = 'AAB301') eec357,
+		    (select code_describe from code_value where code_value = t.eec358 and code_type = 'AAB301') eec358,
+		    (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = b.aca111) aca111_s,
+		    (select code_name from code_value where code_type='AAC009' and code_value = t.chc008) chc008,
+		    (select code_name from code_value where code_type='CHC030' and code_value = t.chc030) chc030,
+		    (select name from smt_group where groupid = t.aab001) aab004,
+		    t.aab026,
+		    decode(length(t.aac002),'18',(to_char(sysdate,'yyyy')-substr(t.aac002,7,4)),(to_char(sysdate,'yyyy')-('19'||substr(t.aac002,7,2)))) age,
+		    t.aac026,
+		    (select code_name from code_value where code_type='CHB210' and code_value = (select chb210 from ca13 where aca111 = t.aca111)) planTime,
+		    t.aae013,
+		    to_char(t.aae036,'yyyy&quot;年&quot;MM&quot;月&quot;dd&quot;日&quot;') aae036_s,
+		    (case when chc008 = '11' or chc008 = '12' or chc030 is not null then '1' else '0' end) flag,
+		    t.bus_uuid,
+		    (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=t.bus_uuid) photo_url
+	   from hc61 t,hb59 a,hb65 b
+	   <where>
+	   		t.chc111 = a.chc111
+	   and  
+	   		a.chb055 = b.chb055
+	   and  
+			t.aae100 = '1'
+	   and  
+	        a.aae100 = '1'
+	   and
+	        b.aae100 = '1'  	   
+	   and
+	      	t.chc111 = #{chc111}
+	   and  
+	   		a.chb055 = #{chb055}
+	   </where> 
+	 </select>
+</mapper>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.app.APP_001_002.IndexMapper">
+    <!-- 手机端查询未报名培训计划 -->
+    <select id="getAllPlan" resultType="Hb65">
+        select (select #{fore}||m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=a.bus_uuid) photo_url,
+        (select code_name from code_value where code_type = 'ACA109' and code_value=h.aca111) aca111_name,
+        s.name,
+        (select code_name from code_value where code_type = 'ACA11A' and code_value=h.aca11a) aca11a,
+        (SELECT count(1) from hb59 WHERE chb055= h.chb055 and aae100 = '1' and eae052 != '9') total,
+        to_char(h.chb107,'yyyy.mm.dd') chb107,
+        to_char(h.chb108,'yyyy.mm.dd') chb108,
+        h.chb055,
+        h.aab001,
+        ( CASE WHEN to_char( h.chb208, 'yyyymmdd' ) > TO_CHAR( SYSDATE - 7, 'yyyymmdd' ) THEN 'true' ELSE 'false' END ) flag,
+
+        h.aca111,
+        h.chb106,
+        h.chb130,
+        ( CASE WHEN h.CHB055 in (SELECT CHB055 FROM hb56 where userid=#{userId}) THEN '1' ELSE '0' END ) collected
+        from hb65 h,smt_group s,ad01 a
+        where h.aab001=s.groupid and h.aab001=a.aab001 and
+        h.chb055 not in (SELECT DISTINCT chb055 from hb59 where chc111 =#{chc111} )
+        order by h.aae036 desc
+    </select>
+
+    <!-- 获取培训BANNER -->
+    <select id="getBannerList" parameterType="String" resultType="SBanner">
+	   select 
+		      #{fileModule} ||c.file_rel_path  imgPath
+		 from s_banner_list a,s_bus_file_record b ,s_file_record c
+		where a.banner_uuid = (select banner_uuid from s_banner where banner_type = #{type})
+		  and a.bus_uuid = b.bus_uuid
+		  and b.file_uuid = c.file_uuid
+    </select>
+</mapper>

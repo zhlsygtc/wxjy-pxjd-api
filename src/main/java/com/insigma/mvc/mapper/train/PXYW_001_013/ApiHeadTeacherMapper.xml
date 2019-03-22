@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.train.PXYW_001_013.ApiHeadTeacherMapper">
+  <!-- 基本sql片段 -->
+  <sql id="Base_Column_List">
+       T.CHB057,
+       T.CHB299,
+       T.AAB001,
+       T.AAC002,
+       T.AAC003,
+       T.AAC004,
+       (SELECT CODE_NAME
+            FROM CODE_VALUE
+            WHERE CODE_TYPE = 'AAC004'
+            AND CODE_VALUE = T.AAC004) AAC004_NAME,
+       T.AAC006,
+       TO_CHAR(T.AAC006, 'yyyy-MM-dd') AAC006_STR,
+       T.AAE005,
+       T.AAE013,
+       T.USERID user_id,
+       SU.USERNAME,
+       T.AAE006,
+       T.BUS_UUID,
+       (SELECT M.FILE_REL_PATH
+            FROM S_FILE_RECORD M, S_BUS_FILE_RECORD N
+            WHERE M.FILE_UUID = N.FILE_UUID
+            AND N.BUS_UUID = T.BUS_UUID) PHOTO_URL
+  </sql>
+
+  <!-- 班主任信息列表查询 -->
+  <select id="getHeadTeacherList" parameterType="Hb57" resultType="Hb57">
+      SELECT
+          <include refid="Base_Column_List" />
+      FROM HB57 T
+      JOIN S_USER SU
+      ON T.USERID = SU.USERID
+      <where>
+    	  T.AAE100 = '1'
+          <if test="aab001!=null">
+              AND T.AAB001 = #{aab001}
+          </if>
+          <if test="aac003!=null">
+              AND T.AAC003 LIKE '%'||#{aac003}||'%'
+          </if>
+          <if test="chb057_arr!=null">
+              and T.CHB057 in
+              <foreach item="item" collection="chb057_arr" open="(" separator="," close=")">
+                  #{item}
+              </foreach>
+          </if>
+          ORDER BY T.AAE036 DESC
+      </where>
+  </select>
+  
+  <!-- 通过主键查询班主任信息 -->
+  <select id="getHeadTeacherById" parameterType="java.lang.String" resultType="Hb57">
+      SELECT
+          <include refid="Base_Column_List" />
+      FROM HB57 T
+      JOIN S_USER SU
+      ON T.USERID = SU.USERID
+      WHERE T.CHB057 = #{chb057}
+  </select>
+
+    <!-- 通过用户id查询班主任信息 -->
+    <select id="getHeadTeacherByUserId" parameterType="java.lang.String" resultType="Hb57">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM HB57 T
+        JOIN S_USER SU
+        ON T.USERID = SU.USERID
+        WHERE T.USERID = #{userid}
+        AND T.AAE100 = '1'
+        AND ROWNUM = 1
+    </select>
+  
+  <!-- 校验身份证 -->
+  <select id="checkAac002" parameterType="java.lang.String" resultType="java.lang.Integer">
+      SELECT COUNT(1)
+      FROM HB57
+      WHERE AAC002 = #{aac002}
+      AND AAB001 = #{aab001}
+  </select>
+  
+  <!-- 通过id删除班主任信息 -->
+  <update id="deleteHeadTeacherById" parameterType="java.lang.String">
+      UPDATE HB57 T SET T.AAE100 = '0', T.USERID = ''
+      WHERE T.CHB057 = #{chb057}
+  </update>
+  
+  <!-- 通过id批量删除班主任信息 -->
+  <update id="deleteHeadTeacherByIds" parameterType="java.lang.String" >
+      UPDATE HB57 T SET T.AAE100 = '0', T.USERID = ''
+      WHERE T.CHB057 IN
+      <foreach item="selectnodes" collection="array" open="(" separator="," close=")">
+          #{selectnodes}
+      </foreach>
+  </update>
+  
+  <!-- 新增班主任信息 -->
+  <insert id="addHeadTeacher" parameterType="Hb57">
+      <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chb057">
+          SELECT sys_guid() FROM dual
+      </selectKey>
+      INSERT INTO HB57
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+          CHB057,
+          AAB001,
+          AAC002,
+          AAC003,
+          AAC006,
+          AAE011,
+          AAE036,
+          USERID,
+          AAE100,
+          CHB299,
+          <if test="aac004 != null">
+              AAC004,
+          </if>
+          <if test="aae005 != null">
+              AAE005,
+          </if>
+          <if test="aae006 != null">
+              AAE006,
+          </if>
+          <if test="aae013 != null">
+              AAE013,
+          </if>
+          <if test="bus_uuid != null">
+              BUS_UUID,
+          </if>
+      </trim>
+      <trim prefix="values (" suffix=")" suffixOverrides=",">
+          #{chb057},
+          #{aab001},
+          #{aac002},
+          #{aac003},
+          #{aac006},
+          #{aae011},
+          SYSDATE,
+          #{user_id},
+          '1',
+          #{chb299},
+          <if test="aac004 != null">
+              #{aac004},
+          </if>
+          <if test="aae005 != null">
+              #{aae005},
+          </if>
+          <if test="aae006 != null">
+              #{aae006},
+          </if>
+          <if test="aae013 != null">
+              #{aae013},
+          </if>
+          <if test="bus_uuid != null">
+              #{bus_uuid},
+          </if>
+      </trim>
+  </insert>
+  
+  <!-- 更新班主任信息 -->
+  <update id="updHeadTeacher" parameterType="Hb57">
+      UPDATE HB57
+      <trim prefix="set" suffixOverrides=",">
+          AAE011 = #{aae011},
+          AAE036 = SYSDATE,
+          <if test="aac004 != null">
+              AAC004 = #{aac004},
+          </if>
+          <if test="aae005 != null">
+              AAE005 = #{aae005},
+          </if>
+          <if test="aae006 != null">
+              AAE006 = #{aae006},
+          </if>
+          <if test="aae013 != null">
+              AAE013 = #{aae013},
+          </if>
+          <if test="bus_uuid != null">
+              BUS_UUID = #{bus_uuid},
+          </if>
+      </trim>
+      WHERE CHB057 = #{chb057}
+  </update>
+  
+  <!-- 班主任负责班级列表查询 -->
+  <select id="getHeadTeacherClasses" parameterType="Hb57" resultType="Hb68">
+      SELECT CHB100,
+          TO_CHAR(T.CHB107, 'yyyy-MM-dd') CHB107_STR,
+          TO_CHAR(T.CHB108, 'yyyy-MM-dd') CHB108_STR,
+          (SELECT CODE_NAME
+              FROM CODE_VALUE
+              WHERE CODE_TYPE = 'CHB103'
+              AND CODE_VALUE = T.CHB103) CHB103_NAME,
+          (SELECT CODE_NAME
+              FROM CODE_VALUE
+              WHERE CODE_TYPE = 'ACA111'
+              AND CODE_VALUE = T.ACA111) ACA111_NAME,
+          (SELECT COUNT(1)
+              FROM HC60 c
+              WHERE c.CHB068 = T.CHB068
+              AND c.AAE100 = '1' and c.eae052 = '1') CHB106,
+          (SELECT COUNT(1)
+              FROM HC66
+              WHERE AAE100 = '1'
+              AND CHB068 = T.CHB068
+              AND CHC018 = '1') COUNTHG,
+          (SELECT CODE_NAME
+              FROM CODE_VALUE
+              WHERE CODE_TYPE = 'CHB111'
+              AND CODE_VALUE = T.CHB111) CHB111_NAME
+      FROM HB68 T
+      WHERE T.AAE100 = '1'
+      AND T.AAB001 = #{aab001}
+      AND T.CHB057 = #{chb057}
+      ORDER BY T.CHB107 DESC
+  </select>
+  
+</mapper>

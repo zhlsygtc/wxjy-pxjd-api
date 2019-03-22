@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.app.APP_001_008.ApiMessageMapper">
+		 
+	<select id="getInfos" parameterType="S_info" resultType="S_info">
+		
+		select t.chc111,t.infocode,t.bus_id chb055,t.bus_id chb068,
+		       t.infocontent,t.is_read,t.infotype
+		  from s_info t
+		 where t.aae100 = '1'
+		   and t.chc111 = #{chc111}
+		   <if test="is_read!=null" >
+		   		and t.is_read = #{is_read}
+		   </if>
+		   order by t.is_read,t.ecc064 desc
+		
+	</select>
+		  
+	<!-- 更新消息阅读时间 -->
+	<update id="readInfo" parameterType="S_info">
+		update s_info set is_read = '1',readdate = sysdate where aae100 = '1' and infocode = #{infocode} and is_read = '0'
+	</update>	  
+		  
+</mapper>

@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.app.APP_001_004.ApiPersonMgmtMapper">
+		 
+	<!-- 查询学员是否已报名该计划 -->
+    <select id="findStuWithPlan" parameterType="Student" resultType="String">
+		select
+	        count(1)
+	    from
+	        Hb59 b
+	    where
+	        b.aae100 = '1'
+	    and
+	    	b.chc111 = #{chc111}
+	    and
+	    	b.chb055 = #{chb055}
+    </select>
+	
+	<!-- 查询学员一年内是否已参加培训 -->
+	<select id="checkNum" parameterType="Student" resultType="String">
+	   select count(1)
+	     from hb59 
+		where chc111 = #{chc111}
+          and aae100 = '1'
+          and eae052 != '9'	
+          and ecc064 > (sysdate-365)
+	</select>
+	
+	<!-- 查询当前要报名的计划 -->
+	<select id="getCurrentPlan" parameterType="Student" resultType="Hb65">
+	   select * from hb65 where chb055 = #{chb055}
+	</select>
+	
+	<!-- 校验之前有同工种的较高（包括相等）等级培训 -->
+	<select id="checkGrade" parameterType="Hb65" resultType="String">
+		select count(1) 
+		  from  hb59 a,hb65 b
+		 where a.chc111 = #{chc111}
+		   and a.chb055 = b.chb055
+		   and b.aca111 = #{aca111}
+		   <choose>
+		   		<when test="flag==null">
+		   		and	to_number(b.aca11a) > to_number(#{aca11a})
+		   		</when>
+		   		<otherwise>
+		   		and	to_number(b.aca11a) = to_number(#{aca11a})
+		   		</otherwise>
+		   </choose>
+	</select>
+	
+	<!-- 获取人员基本信息 -->
+    <select id="getPersonInfo" parameterType="Student" resultType="Student">
+		select a.aac003,a.aac002,a.aac004,'' chc111,
+		       (select code_name from code_value where code_type = 'AAC004' and code_value = a.aac004) aac004_name,
+		       to_char(a.aac006,'yyyy-MM-dd') aac006_string,
+		       a.aac005,
+		       (select code_name from code_value where code_type = 'AAC005' and code_value = a.aac005) aac005_name,
+		       a.aac011,
+		       (select code_name from code_value where code_type = 'AAC011' and code_value = a.aac011) aac011_name,
+		       a.aae005,a.aae015,
+		       a.aac009 chc008,
+		       (select code_name from code_value where code_type = 'AAC009' and code_value = a.aac009) chc008_name,
+		       a.eec357,a.eec358,a.aac026,a.aae013,
+		       (select code_name from code_value where code_type = 'AAB301' and code_value = a.eec357) eec357_name,
+		       (select code_name from code_value where code_type = 'AAB301' and code_value = a.eec358) eec358_name
+		  from ce01 a,s_user b
+		 where b.userid = #{userid}
+		   and a.eec001 = b.baseinfoid
+    </select>	
+    		
+		 
+	<!-- 获取学员基本信息 -->
+    <select id="getStudentInfo" parameterType="Student" resultType="Student">
+		select a.aac003,a.aac002,a.aac004,a.chc003,a.chc111,
+		       (select code_name from code_value where code_type = 'AAC004' and code_value = a.aac004) aac004_name,
+		       to_char(a.aac006,'yyyy-MM-dd') aac006_string,
+		       a.aac005,
+		       (select code_name from code_value where code_type = 'AAC005' and code_value = a.aac005) aac005_name,
+		       a.aac011,
+		       (select code_name from code_value where code_type = 'AAC011' and code_value = a.aac011) aac011_name,
+		       a.aae005,a.aae015,
+		       a.chc008,a.chc002,
+		       (select code_name from code_value where code_type = 'AAC009' and code_value = a.chc008) chc008_name,
+		       (select code_name from code_value where code_type = 'CHC002' and code_value = a.chc002) chc002_name,
+		       a.eec357,a.eec358,a.aac026,a.aae013,
+		       (select code_name from code_value where code_type = 'AAB301' and code_value = a.eec357) eec357_name,
+		       (select code_name from code_value where code_type = 'AAB301' and code_value = a.eec358) eec358_name
+		  from hc61 a
+		 where a.chc111 = #{chc111}
+		   and a.aae100 = '1'
+    </select>		 
+		 
+		 
+	<!-- 查询学院库中接下去的顺序号 -->
+	 <select id="getNextNo"  resultType="java.lang.String">
+	       select  nvl((max(to_number(chc066))+1),1) from hc61 where aae100 = '1'
+	 </select>
+	 
+	 <!-- 保存学员基本信息 -->
+	 <insert id="saveStu" parameterType="Student">
+		insert into hc61(
+	        chc111	,
+	        aac001  ,
+	        aac002	,
+			aac003	,
+			aac006  ,
+			aac004  ,
+			aac005  ,
+			chc003  ,
+			chc002  ,
+			chc008  ,
+			eec357  ,
+			eec358  ,
+			aac026  ,
+			aac011  ,
+			aac007  ,
+			aae005  ,
+			aae007  ,
+			aae015  ,
+			aae006  ,
+			aab024  ,
+			aab025  ,
+			aab026  ,
+			isselected,
+			eae052  ,
+			chc030  ,
+			aae100  ,
+			aab001  ,
+			aae011  ,
+			chc066	,
+			aca111  ,
+			aae036  ,
+			ecc064  ,
+			aae013
+		)
+		values (
+		    #{chc111	,jdbcType=VARCHAR},
+		    #{aac001	,jdbcType=VARCHAR},
+		    #{aac002	,jdbcType=VARCHAR},
+			#{aac003	,jdbcType=VARCHAR},
+			#{aac006    ,jdbcType=DATE},
+			#{aac004	,jdbcType=VARCHAR},
+			#{aac005	,jdbcType=VARCHAR},
+			#{chc003	,jdbcType=VARCHAR},
+			#{chc002	,jdbcType=VARCHAR},
+			#{chc008	,jdbcType=VARCHAR},
+			#{eec357	,jdbcType=VARCHAR},
+			#{eec358	,jdbcType=VARCHAR},
+			#{aac026	,jdbcType=VARCHAR},
+			#{aac011	,jdbcType=VARCHAR},
+			to_date(#{aac007_string,jdbcType=VARCHAR},'yyyy-MM-dd'),
+			#{aae005	,jdbcType=VARCHAR},
+			#{aae007	,jdbcType=VARCHAR},
+			#{aae015	,jdbcType=VARCHAR},
+			#{aae006	,jdbcType=VARCHAR},
+			#{aab024	,jdbcType=VARCHAR},
+			#{aab025	,jdbcType=VARCHAR},
+			#{aab026	,jdbcType=VARCHAR},
+			#{isselected	,jdbcType=INTEGER},
+			#{eae052	,jdbcType=INTEGER},
+			#{chc030	,jdbcType=INTEGER},
+			#{aae100	,jdbcType=VARCHAR},
+			#{aab001	,jdbcType=INTEGER},
+			#{userid	,jdbcType=INTEGER},
+			#{chc066	,jdbcType=INTEGER},
+			#{aca111    ,jdbcType=INTEGER},
+			sysdate,
+			sysdate,
+			#{aae013	,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<!-- 更新学员信息 -->
+  	<update id="updateStu" parameterType="Student">
+	    update hc61
+	    <set>
+	      <if test="aac003 != null">
+	        AAC003 = #{aac003,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chc003 != null">
+	        chc003 = #{chc003,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aac005 != null">
+	        aac005 = #{aac005,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chc002 != null">
+	        chc002 = #{chc002,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chc008 != null">
+	        chc008 = #{chc008,jdbcType=VARCHAR},
+	      </if>
+	      <if test="eec357 != null">
+	        eec357 = #{eec357,jdbcType=VARCHAR},
+	      </if>
+	      <if test="eec358 != null">
+	        eec358 = #{eec358,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aac026 != null">
+	        aac026 = #{aac026,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae005 != null">
+	        aae005 = #{aae005,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae007 != null">
+	        aae007 = #{aae007,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae015 != null">
+	        aae015 = #{aae015,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chc030 != null">
+	        chc030 = #{chc030,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae006 != null">
+	        aae006 = #{aae006,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aab024 != null">
+	        aab024 = #{aab024,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aab025 != null">
+	        aab025 = #{aab025,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aab026 != null">
+	        aab026 = #{aab026,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chc066 != null">
+            chc066 = #{chc066,jdbcType=DATE},
+          </if>
+	      <if test="aae036 != null">
+            aae036 = #{aae036,jdbcType=DATE},
+          </if>
+          <if test="ecc064_date != null">
+            ecc064 = #{ecc064_date,jdbcType=DATE},
+          </if>
+	      <if test="aac007_string != null">
+	        aac007 = to_date(#{aac007_string,jdbcType=VARCHAR},'yyyy-MM-dd'),
+	      </if>
+	      <if test="aac011 != null">
+	        aac011 = #{aac011,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aca111 != null">
+	        aca111 = #{aca111,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae013 != null">
+	        aae013 = #{aae013,jdbcType=VARCHAR},
+	      </if>
+	      <if test="isselected != null">
+	        isselected = #{isselected,jdbcType=VARCHAR},
+	      </if>
+	      <if test="bus_uuid != null">
+	        bus_uuid = #{bus_uuid,jdbcType=VARCHAR},
+	      </if>
+	    </set>
+	    where chc111 = #{chc111,jdbcType=VARCHAR}
+  	</update>  
+	
+	
+	<!-- 学员报名 -->
+	<insert id="apply" parameterType="Student">
+		insert into hb59 (
+		   chb059,
+		   chc111,
+		   chb055,
+		   chb071,
+		   aae011,
+		   ecc064,
+		   aae100,
+		   eae052
+		) 
+		values (
+		  sys_guid(),
+		  #{chc111},
+		  #{chb055},
+		  '04',
+		  #{userid},
+		  sysdate,
+		  '1',
+		  '0'
+		)
+	</insert>	 
+		  
+</mapper>

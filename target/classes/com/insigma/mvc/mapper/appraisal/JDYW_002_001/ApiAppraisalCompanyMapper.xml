@@ -1,0 +1,587 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.appraisal.JDYW_002_001.ApiAppraisalCompanyMapper">
+	<select id="getAD01ById" parameterType="Ad01" resultType="Ad01">
+		select 
+			  a.groupid,
+		      a.districtcode,
+		      a.name,
+		      b.aab019,
+		      a.principal,
+		      a.shortname,
+		      a.address,
+		      a.tel,
+		      a.linkman,
+		      a.aab998,
+		      a.principal,
+		      b.aae015,
+		      b.aab015,
+		      b.acb501,
+		      b.aae005,
+		      b.gps,
+		      b.gps_lon,
+		      b.gps_lat,
+		      b.aab018,
+		      b.aab020,
+		      b.eae052,
+		      b.acb329,
+		      b.aab301,
+		      b.aab014,
+		      b.aab041,
+		      b.eab023,
+		      b.edc325,
+		      b.bus_uuid
+		from 
+		  smt_group a,
+		  ad01 b
+		where 
+		  a.groupid = b.aab001
+		  and a.groupid = #{groupid}
+	</select>
+	<select id="getAd01ByBusUuid" parameterType="Ad01" resultType="Ad01">
+		select 
+		  b.file_rel_path 
+		from 
+		  s_bus_file_record a ,
+		  s_file_record b 
+		where 
+		  a.file_uuid = b.file_uuid and 
+		  a.bus_uuid = #{bus_uuid}
+	</select>
+	<select id="getCodeValueChb065" parameterType="Hb64" resultType="Hb64">
+		select 
+			code_name chb065
+		from
+			code_value
+		where 
+			code_type = 'CHB065'
+	</select>
+	<select id="getCodeValueChb163" parameterType="Hb64" resultType="Hb64">
+		select 
+			code_name chb163
+		from
+			code_value
+		where 
+			code_type = 'CHB163'
+	</select>
+	<select id="getCodeValueChb070" parameterType="Hb64" resultType="Hb64">
+		select 
+			code_name chb070
+		from
+			code_value
+		where 
+			code_type = 'CHB070'
+	</select>
+	<update id="updateAd01ByBusUuid" parameterType="Ad01">
+	update ad01
+    <set>
+        bus_uuid = #{bus_uuid,jdbcType=VARCHAR},
+    </set>
+    where aab001 = #{file_bus_id,jdbcType=VARCHAR}
+	</update>
+	<update id="saveAd01ByGroupid" parameterType="Ad01">
+	update ad01
+	<set>
+		<if test="aab019 !=null">
+			aab019 = #{aab019,jdbcType=VARCHAR},
+		</if>
+		<if test="eab023 !=null">
+			eab023 = #{eab023,jdbcType=VARCHAR},
+		</if>
+		<if test="aab018 !=null">
+			aab018 = #{aab018,jdbcType=VARCHAR},
+		</if>
+		<if test="edc325 !=null">
+			edc325 = #{edc325,jdbcType=VARCHAR},
+		</if>
+		<if test="aae005 !=null">
+			aae005 = #{aae005,jdbcType=VARCHAR},
+		</if>
+		<if test="aab020 !=null">
+			aab020 = #{aab020,jdbcType=VARCHAR},
+		</if>
+		<if test="aab015 !=null">
+			aab015 = #{aab015,jdbcType=VARCHAR},
+		</if>
+		<if test="gps_lon !=null">
+			gps_lon = #{gps_lon,jdbcType=VARCHAR},
+		</if>
+		<if test="gps_lat !=null">
+			gps_lat = #{gps_lat,jdbcType=VARCHAR},
+		</if>
+		<if test="gps !=null">
+			gps = #{gps,jdbcType=VARCHAR},
+		</if>
+		<if test="aab041 !=null">
+			aab041 = #{aab041,jdbcType=VARCHAR},
+		</if>
+		<if test="aae015 !=null">
+			aae015 = #{aae015,jdbcType=VARCHAR},
+		</if>
+		<if test="aab014 !=null">
+			aab014 = #{aab014,jdbcType=VARCHAR},
+		</if>
+	</set>	
+	where aab001 = #{groupid,jdbcType=VARCHAR}
+	</update>
+	<update id="saveSmtgroupByGroupid" parameterType="Ad01">
+	update smt_group
+	<set>
+		<if test="aab998 !=null">
+			aab998 = #{aab998,jdbcType=VARCHAR},
+		</if>
+		<if test="name !=null">
+			name = #{name,jdbcType=VARCHAR},
+		</if>
+		<if test="shortname !=null">
+			shortname = #{shortname,jdbcType=VARCHAR},
+		</if>
+		<if test="linkman !=null">
+			linkman = #{linkman,jdbcType=VARCHAR},
+		</if>
+		<if test="tel !=null">
+			tel = #{tel,jdbcType=VARCHAR},
+		</if>
+		<if test="principal !=null">
+			principal = #{principal,jdbcType=VARCHAR},
+		</if>
+		<if test="address !=null">
+			address = #{address,jdbcType=VARCHAR},
+		</if>
+	</set>	
+	where groupid = #{groupid,jdbcType=VARCHAR}
+	</update>
+
+	<!-- 获取当前机构考点信息 -->
+	<select id="getGroundInfo" parameterType="Hb76" resultType="Hb76">
+		select b.aae013, b.chb178, b.chb076
+		from hb76 b
+		where b.aab001 = #{aab001}
+		and aae100 = #{aae100}
+	</select>
+
+	<!-- 获取当前考点考场信息 -->
+	<select id="getClassroomInfo" parameterType="Hb78" resultType="Hb78">
+		select b.chb076,a.chb078, a.chb179, a.chb166, a.aae013, b.chb178
+			 from hb78 a, hb76 b
+			 where a.chb076 = b.chb076 and a.chb076 = #{chb076} and a.aae100 = #{aae100} and b.aae100 = #{aae100}
+	</select>
+	
+	<!-- 查询培训资质列表  -->
+	<select id="getQualityInfo" parameterType="Hb62" resultType="Hb62">
+		select 
+		  a.chb062,
+		  (select code_name from code_value where code_type = 'ACA109' and code_seq = a.aca111)||' '||(select code_name from code_value where code_type = 'CHB210' and code_value = chb210) aca111,
+          (SELECT code_name FROM code_value WHERE code_type = 'CHB210' AND code_value = chb210) chb210,
+          (SELECT code_name FROM code_value WHERE code_type = 'AAC183' AND code_value = (SELECT substr(par_code_value, 0,
+             instr(par_code_value, ',') - 1) FROM code_value WHERE code_seq = a.aca111)) aca119,
+          (SELECT code_name FROM code_value WHERE code_type = 'ACA110' AND code_value =(SELECT substr(par_code_value, instr(par_code_value, ',') + 1,
+            length(par_code_value) - 1) FROM code_value WHERE code_seq = a.aca111)) aca122,eae052
+		from 
+		  hb62 a
+		where 
+		  a.aab001 = #{aab001}
+	 	and
+	 	  a.aae100 = '1'
+	 	order by eae052 desc
+	</select>
+	
+	<!-- 查询培训资质列表(大丰) -->
+	<select id="getQualityInfo_df" parameterType="Hb62" resultType="Hb62">
+		select 
+		  a.chb062,
+		  (select code_name from code_value where code_type = 'ACA109' and code_seq = a.aca111) aca111,
+          (select code_name from code_value where code_type = 'ACA119' and code_value = (select par_code_value from code_value where code_seq = a.aca111) ) aca119,
+          (select code_name from code_value where code_type = 'ACA119' and code_value = 
+			(select par_code_value from code_value where code_type = 'ACA119' and code_value = (select par_code_value from code_value where code_seq = a.aca111))) aca122,
+            eae052
+		from 
+		  hb62 a
+		where 
+		  a.aab001 = #{aab001}
+	 	and
+	 	  a.aae100 = '1'
+	 	order by eae052 desc
+	</select>
+	
+	<!-- 查询培训资质列表(陕西) -->
+	<select id="getQualityInfo_sx" parameterType="Hb62" resultType="Hb62">
+		select 
+		  a.chb062,
+		  (select aca112 from ca11 where aca110 = a.aca111) aca111,
+		  (select aaa103 from v_aa10 where aaa100 = 'ACA11A' and aaa102 = a.aca11a) aca11a,
+		  to_char(a.chb624,'yyyy-MM-dd') chb624,
+		  to_char(a.chb625,'yyyy-MM-dd') chb625,
+            eae052
+		from 
+		  hb62 a
+		where 
+		  a.aab001 = #{aab001}
+	 	and
+	 	  a.aae100 = '1'
+	 	order by eae052 desc
+	</select>
+	
+	<!-- 查询是否已经存在该场地 -->
+	<select id="checkGround" parameterType="String" resultType="String">
+	    	select count(1) from hb63
+	    	where chb060 = #{chb060}
+    </select>
+	<!-- 插入场地信息 -->
+	<insert id="insertHb63" parameterType="Hb63">
+        insert into Hb63(
+        	aab001,
+        	chb017,
+			aae100,
+			aae013,
+			aae006,
+			chb060,
+			ecc064,
+			aae036,
+			aae011,
+			eae052
+        )
+        values(
+        	#{aab001},
+        	#{chb017},
+        	'1',
+        	#{aae013},
+        	#{aae006},
+        	#{chb060},
+        	sysdate,
+        	sysdate,
+        	#{aae011},
+        	'0'
+           )
+    </insert>
+    <!-- 更新场地信息 -->
+     <update id="updateHb63" parameterType="Hb63">
+    	update 
+    		hb63 
+    	set 
+    		chb017 = #{chb017},
+    		aae013 = #{aae013},
+    		aae006 = #{aae006},
+    		aae036 = sysdate
+    	where 
+    		chb060 = #{chb060}
+    </update>
+    <!-- 删除场地信息 -->
+    <delete id="delHb63" parameterType="Hb63">
+    	update hb63
+    	 set aae100='0'
+    	where
+    		aab001 = #{aab001}
+    	and
+    		chb060 not in
+            <foreach item="item" collection="chb060s" open="(" separator="," close=")">
+            	#{item}
+        	</foreach>
+    </delete>
+    <!-- 删除教室信息 -->
+    <delete id="delHb64" parameterType="Hb63">
+    	update hb64  
+    		set aae100='0'
+    	where
+    		chb060 in
+    		(
+	    		 select chb060 
+	    		 from hb63 
+	    		 where aab001 = #{aab001}
+	    		 and chb060 not in
+	            <foreach item="item" collection="chb060s" open="(" separator="," close=")">
+	            	#{item}
+	        	</foreach>
+        	)
+    </delete>
+    <!-- 查询是否已经存在该教室 -->
+	<select id="checkClassroom" parameterType="String" resultType="String">
+	    	select count(1) from hb64
+	    	where chb064 = #{chb064}
+    </select>
+    <!-- 插入教室信息 -->
+	<insert id="insertHb64" parameterType="Hb63">
+        insert into Hb64(
+        	chb064,
+        	chb060,
+        	chb063,
+        	chb065,
+        	chb070,
+        	aae013,
+        	aae100,
+        	ecc064,
+        	aae036,
+        	aae011,
+        	chb163
+        )
+        values(
+        	#{chb064},
+        	#{chb060},
+        	#{chb063},
+        	(select code_value from code_value where code_type = 'CHB065' and code_name = #{chb065}),
+    		(select code_value from code_value where code_type = 'CHB070' and code_name = #{chb070}),
+        	#{aae013},
+        	'1',
+        	sysdate,
+        	sysdate,
+        	#{aae011},
+        	(select code_value from code_value where code_type = 'CHB163' and code_name = #{chb163})
+           )
+    </insert>
+    <!-- 更新教室信息 -->
+     <update id="updateHb64" parameterType="Hb63">
+    	update 
+    		hb64
+    	set 
+    		chb063 = #{chb063},
+    		chb065 = (select code_value from code_value where code_type = 'CHB065' and code_name = #{chb065}),
+    		chb070 = (select code_value from code_value where code_type = 'CHB070' and code_name = #{chb070}),
+    		aae013 = #{aae013},
+    		aae036 = sysdate,
+    		chb163 = (select code_value from code_value where code_type = 'CHB163' and code_name = #{chb163})
+    	where 
+    		chb064 = #{chb064}
+    </update>
+    <!-- 删除教室信息 -->
+    <delete id="delSingleHb64" parameterType="Hb63">
+    	update hb64
+    		set aae100='0'
+    	where 
+    		chb060 in (select chb060 from hb63 where aab001 = #{aab001})
+    	and
+    		chb064 not in
+    		<foreach item="item" collection="chb064s" open="(" separator="," close=")">
+            	#{item}
+        	</foreach>
+    </delete>
+    
+    
+    <select id="getCodeValueByName" parameterType="CodeValue" resultType="CodeValue">
+		select 
+			*
+		from
+			code_value
+		where 
+			code_type = #{code_type}
+		and code_name=#{code_name}
+		
+		<if test="code_level !=null">
+		    and code_level = #{code_level}
+		</if>
+		
+	
+	</select>
+    <!-- 查询是否已经存在该资质 -->
+	<select id="checkQualityInfo" parameterType="String" resultType="String">
+	    	select count(1) from hb62
+	    	where chb062 = #{chb062}
+    </select>
+	<!-- 插入资质信息 -->
+	<insert id="insertHb62" parameterType="Hb62">
+        insert into Hb62(
+        	aab001,
+        	aca111,
+			aae100,
+			chb062,
+			chb016,
+			ecc064,
+			aae036,
+			aae011,
+			chb210,
+			eae052,
+			aca11a,
+			chb624,
+			chb625
+        )
+        values(
+        	#{aab001},
+        	#{aca111},
+        	'1',
+        	#{chb062},
+        	'1',
+        	sysdate,
+        	sysdate,
+        	#{aae011},
+        	#{chb210},
+        	'0',
+        	#{aca11a},
+        	to_date(#{chb624},'yyyy-MM-dd'),
+        	to_date(#{chb625},'yyyy-MM-dd')
+           )
+    </insert>
+    <!-- 更新资质信息 -->
+     <update id="updateHb62" parameterType="Hb62">
+    	update 
+    		hb62 
+    	set 
+    		aca111 = #{aca111},
+    		chb210 = #{chb210},
+    		aae036 = sysdate,
+    		aca11a = #{aca11a},
+    		chb624 = to_date(#{chb624},'yyyy-MM-dd'),
+    		chb625 = to_date(#{chb625},'yyyy-MM-dd')
+    	where 
+    		chb062 = #{chb062}
+    </update>
+    <!-- 删除资质信息 -->
+    <delete id="delHb62" parameterType="Hb62">
+    	update hb62 
+    	  set aae100='0'
+    	where
+    		aab001 = #{aab001}
+    	and
+    		chb062 not in
+            <foreach item="item" collection="chb062s" open="(" separator="," close=")">
+            	#{item}
+        	</foreach>
+    </delete>
+
+	<!-- 无效化该机构所有考点信息 -->
+	<update id="delHb76" parameterType="String">
+    	update Hb76 
+    	  set aae100=#{aae100}
+    	where
+    		aab001 = #{aab001}
+    </update>
+
+	<!-- 无效化该机构所有考点信息 -->
+	<update id="delHb76Hb78" parameterType="String">
+    	update Hb78
+    	  set aae100 = #{aae100}
+    	where
+    		chb076 in (select chb076 from hb76 
+    		where aab001 = #{aab001} and chb076 not in (#{chb076String}))
+    </update>
+
+	<!-- 无效化该考点所有考场信息 -->
+	<update id="delHb78" parameterType="String">
+    	update Hb78 
+    	  set aae100 = #{aae100}
+    	where
+    		chb076 = #{chb076}
+    </update>
+
+	<!-- 批量更新考点信息 -->
+	<insert id="saveHb76" parameterType="java.util.List">
+        merge into hb76 a
+		using(
+		<foreach item="item" collection="list" open="" separator="union all" close="">
+			select #{item.chb076} chb076,
+				#{item.chb178} chb178,
+				#{item.aab001} aab001,
+				#{item.aae011} aae011,
+				SYSDATE aae036,
+				#{item.aae100} aae100,
+				#{item.aae013} aae013
+			from dual 
+		</foreach>
+		) b 
+		on (a.chb076 = b.chb076)
+		when MATCHED then
+		update set a.aae100 = b.aae100,a.chb178 = b.chb178
+		when not MATCHED then
+		insert (CHB076, CHB178, AAB001, AAE011, AAE036, AAE100, AAE013)
+		values(b.CHB076, b.CHB178, b.AAB001, b.AAE011, b.AAE036, b.AAE100, b.AAE013)
+    </insert>
+
+	<!-- 批量更新考场信息 -->
+	<insert id="saveHb78" parameterType="java.util.List">
+        merge into hb78 a
+		using(
+		<foreach item="item" collection="list" open="" separator="union all" close="">
+			select #{item.chb078} CHB078,
+				#{item.chb179} CHB179,
+				#{item.chb076} CHB076,
+				#{item.chb166} CHB166,
+				#{item.aae011} AAE011,
+				SYSDATE aae036,
+				#{item.aae100} AAE100,
+				#{item.aae013} AAE013
+			from dual 
+		</foreach>
+		) b 
+		on (a.CHB078 = b.CHB078)
+		when MATCHED then
+		update set a.CHB179 = b.CHB179,a.CHB076 = b.CHB076,a.CHB166 = b.CHB166, a.AAE100 = b.AAE100, a.AAE013 = b.AAE013
+		when not MATCHED then
+		insert (CHB078, CHB179, CHB076, CHB166, AAE011, AAE036, AAE100, AAE013)
+		values(b.CHB078, b.CHB179, b.CHB076, b.CHB166, b.AAE011, b.AAE036, b.AAE100, b.AAE013)
+    </insert>
+
+    <!-- 根据专业名称查询培训工种名称及专业类别 -->
+	<select id="getAca112" parameterType="String" resultType="CodeValue">
+	    	select ((select code_name
+		          from code_value
+		         where code_type = 'AAC183'
+		           and code_value = (select substr(par_code_value, 0, instr(par_code_value, ',') - 1)
+		                               from code_value
+		                              where code_type = 'ACA109'
+		                                and code_name =  #{code_name})) || ',' ||
+			       (select code_name
+			          from code_value
+			         where code_type = 'ACA110'
+			           and code_value =(select substr(par_code_value, instr(par_code_value, ',') + 1, length(par_code_value)-1)
+			                                       from code_value
+			                                      where code_type = 'ACA109'
+			                                        and code_name =#{code_name}))) as PAR_CODE_VALUE
+		  from dual 
+    </select>
+   
+   <!-- 根据专业名称查询培训工种名称及专业类别 (大丰) --> 
+    <select id="getAca112_df" parameterType="String" resultType="CodeValue">
+	    	select ((select code_name
+		          from code_value
+		         where code_type = 'ACA119'
+		           and code_level = '2'
+		           and code_value = (select par_code_value
+		                               from code_value
+		                              where code_type = 'ACA109'
+		                                and code_name =  #{code_name} and code_level = '3' )) || ',' ||
+			       (select code_name
+			          from code_value
+			         where code_type = 'ACA119'
+			           and code_level = '1'
+			           and code_value =(select par_code_value 
+			                                       from code_value
+			                                      where code_type = 'ACA119' and code_level = '2'
+			                                        and code_value = (
+			                                        				 select par_code_value 
+			                                        				   from code_value
+			                                        				  where code_type = 'ACA109' and code_level = '3' 
+			                                        				    and code_name = #{code_name})))) as PAR_CODE_VALUE
+		  from dual 
+    </select>
+    
+    <!-- 根据专业名称查询培训工种名称及专业类别 (陕西) --> 
+    <select id="getAca112_sx" parameterType="String" resultType="CodeValue">
+	    	select ((select aca112
+		          from ca11
+		         where grade = '2'
+		           and aca111 = (select aca212
+	                               from ca11
+	                              where aca112 =  #{code_name} and grade = '3' )) || ',' ||
+			       (select aca112
+			          from ca11
+			         where grade = '1'
+			           and aca111 =(select aca212 
+                                      from ca11
+                                     where grade = '2'
+                                       and aca111 = (
+                                       				 select aca212 
+                                       				   from ca11
+                                       				  where grade = '3' 
+                                       				    and aca112 = #{code_name})))) as PAR_CODE_VALUE
+		  from dual 
+    </select>
+    
+    <!-- 获取AA01中的值 -->
+    <select id="getAa01ByAaa001" parameterType="String" resultType="String">
+    	select aaa005 from aa01 where aaa001 = #{aaa001} 
+    </select>
+    
+    <!-- 获取CA11主键 -->
+	<select id="getCa11ByAca112" parameterType="String" resultType="String">
+	    select aca110 from ca11 where aca112 = #{aca112} and grade = '3'
+	</select>
+    
+</mapper>

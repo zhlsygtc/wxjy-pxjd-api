@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.app.APP_001_009.ApiSearchMapper">
+    <select id="getSearchResult" resultType="Hb65">
+        SELECT (SELECT #{fore}||m.file_rel_path
+          FROM s_file_record m, s_bus_file_record n
+         WHERE m.file_uuid = n.file_uuid
+           AND n.bus_uuid = a.bus_uuid) photo_url,
+       (SELECT code_name
+          FROM code_value
+         WHERE code_type = 'ACA109'
+           AND code_value = h.aca111) aca111_name,
+       s.name,
+       (SELECT code_name
+          FROM code_value
+         WHERE code_type = 'ACA11A'
+           AND code_value = h.aca11a) aca11a,
+       (SELECT count(1) FROM hb59 b WHERE b.chb055 = h.chb055) total,
+       to_char(h.chb107, 'yyyy.mm.dd') chb107,
+       to_char(h.chb108, 'yyyy.mm.dd') chb108,
+       h.chb055,
+       h.aab001,
+       h.aca111,
+       h.chb106,
+       h.chb130,
+
+       DECODE((SELECT 1
+                from dual
+               WHERE h.chb055 in
+                     (SELECT DISTINCT chb055 from hb59 where chc111 = #{chc111})),
+              1,
+              1,
+              0) flag,
+      DECODE((SELECT 1
+                from dual
+               WHERE h.chb055 in
+                     (SELECT DISTINCT chb055 from hb59 where chc111 = #{chc111})),
+              1,
+              '已报名',
+              '未报名') status,
+
+       decode((select t.chb528
+                from hb68 t
+               where t.chb068 in
+                     (select chb068 from hb58 where chb055 = h.chb055)
+                 and exists (select 1
+                        from hc60
+                       where chc111 = #{chc111}
+                         and chb068 = t.chb068)),
+              '1',
+              '2',
+              '0',
+              '1',
+              '0') chb104,
+              decode((select t.chb528
+                from hb68 t
+               where t.chb068 in
+                     (select chb068 from hb58 where chb055 = h.chb055)
+                 and exists (select 1
+                        from hc60
+                       where chc111 = #{chc111}
+                         and chb068 = t.chb068)),
+              '1',
+              '已结业',
+              '0',
+              '已开班',
+              '未开班') chb104_name
+  FROM hb65 h, smt_group s, ad01 a
+ WHERE h.aab001 = s.groupid
+   AND h.aab001 = a.aab001
+   AND (s.name LIKE '%'||#{param}||'%' OR
+       (SELECT code_name
+           FROM code_value
+          WHERE code_type = 'ACA109'
+            AND code_value = h.aca111) LIKE '%'||#{param}||'%')
+ ORDER BY chb107 DESC
+    </select>
+</mapper>

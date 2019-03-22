@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.train.PXYW_001_002.ApiTeacherMapper">
+  <!-- 基本sql片段 -->
+  <sql id="Base_Column_List">
+    chb061,
+    aab001, 
+    AAC003, 
+    AAC002, 
+    aac004,
+    aae013, 
+    aac006,
+    AAC024, 
+    AAC011, 
+    AAE005, 
+    ecd302,
+    ecd296,
+    bus_uuid,
+    ecd301,
+    (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=a.bus_uuid) photo_url
+  </sql>
+  
+  
+  <!-- 教师信息列表查询 -->
+  <select id="getTeacherList" parameterType="Hb61" resultType="Hb61">
+    select 
+	    chb061,
+	    aac003,
+	    (select code_name from code_value where code_type='AAC004' and code_value = t.aac004) aac004,
+	    aac002,
+	    to_char(aac006,'yyyy-MM-dd') aac006_string,
+	    (select code_name from code_value where code_type='ECD302' and code_value = t.ecd302) ecd302,
+	    (select LISTAGG(c.aaa103, ',') WITHIN GROUP(ORDER BY b.aca111) from hc74 b, v_aa10 c where b.chb061 = t.chb061 and c.aaa100 = 'ACA109' and c.aaa102 = b.aca111) aca111,
+	    <!-- getQualifications(t.chb061) aca111, -->
+	    (select code_name from code_value where code_type='AAC011' and code_value = t.aac011) aac011,
+	    (select code_name from code_value where code_type='ECD296' and code_value = t.ecd296) ecd296,
+	    aae005,
+	    bus_uuid,
+	    eae053,
+	    eae052,
+	    (select code_name from code_value where code_type='EAE052' and code_value = t.eae052) eae052_name
+    from hb61 t
+    <where> 
+    	t.aae100 = '1' 
+      <if test="aab001!=null">
+        and t.aab001 = #{aab001} 
+      </if>
+      <if test="aac003!=null">
+        and t.aac003 like '%'||#{aac003}||'%' 
+      </if>
+      <if test="a_aac004!=null">
+        and t.aac004 in 
+        <foreach item="item" collection="a_aac004" open="(" separator="," close=")">
+            #{item}
+        </foreach> 
+      </if>
+      <if test="a_aac011!=null">
+        and t.aac011 in 
+        <foreach item="item" collection="a_aac011" open="(" separator="," close=")">
+            #{item}
+        </foreach> 
+      </if>
+      <if test="a_aca111!=null">
+        and exists ( select 1 from hc74 where aae100 = '1' and chb061 = t.chb061 and aca111 in 
+        <foreach item="item" collection="a_aca111" open="(" separator="," close=")">
+            #{item}
+        </foreach> 
+        )
+      </if>
+      <if test="a_chb061!=null">
+           and t.chb061 in 
+	      <foreach item="item" collection="a_chb061" open="(" separator="," close=")">
+	            #{item}
+	       </foreach>
+      </if>
+      <if test="eae052!=null">
+        and t.eae052=#{eae052}
+      </if>
+       order by t.eae052,t.aac003
+    </where> 
+  </select>
+  
+  <!-- 通过主键查询教师信息 -->
+  <select id="getTeacherById" parameterType="java.lang.String" resultType="Hb61">
+    select 
+    <include refid="Base_Column_List" />
+    from hb61 a
+    where chb061 = #{chb061,jdbcType=VARCHAR}
+  </select>
+  
+  <!-- 通过主键查询教师信息中文 -->
+  <select id="getTeacherGBKById" parameterType="java.lang.String" resultType="Hb61">
+    select 
+    chb061,
+    aab001, 
+    AAC003, 
+    aac002, 
+    (select code_name from code_value where code_type = 'AAC004' and code_value = aac004) aac004, 
+    (case when length(a.aae013) > 169 then substr(a.aae013,0,169) || '...' else a.aae013 end) aae013, 
+    to_char(aac006,'yyyy-MM-dd') aac006_string,
+    (select code_name from code_value where code_type = 'AAC024' and code_value = aac024) aac024, 
+    (select code_name from code_value where code_type = 'AAC011' and code_value = aac011) aac011, 
+    AAE005, 
+    (select code_name from code_value where code_type = 'ECD302' and code_value = ecd302) ecd302, 
+    (select code_name from code_value where code_type = 'ECD296' and code_value = ecd296) ecd296,
+    bus_uuid,
+    (select code_name from code_value where code_type = 'ECD301' and code_value = ecd301) ecd301,
+    (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=a.bus_uuid) photo_url
+    from hb61 a
+    where chb061 = #{chb061,jdbcType=VARCHAR}
+  </select>
+  
+  <!-- 校验身份证 -->
+  <select id="checkAac002" parameterType="java.lang.String" resultType="Hb61">
+    select aac002
+    from hb61
+    where aac002 = #{aac002,jdbcType=VARCHAR}
+      and aab001 = #{baseinfoid,jdbcType=VARCHAR}
+  </select>
+  
+  <!-- 通过教师内码删除教师信息 -->
+  <delete id="deleteTeacher" parameterType="java.lang.String">
+    delete from hb61
+    where chb061 = #{chb061,jdbcType=VARCHAR}
+  </delete>
+  
+  <!-- 批量删除 -->
+  <delete id="batDelete"  parameterType="String" >
+       delete from hb61 where chb061 in 
+       <foreach item="selectnodes" collection="array" open="(" separator="," close=")">
+            #{selectnodes}
+       </foreach>
+  </delete>
+  
+  <!-- 通过教师内码删除教师资质信息 -->
+  <delete id="deleteQualifications" parameterType="java.lang.String">
+    delete from hc74 where chb061 in 
+    <foreach item="chb061s" collection="array" open="(" separator="," close=")">
+            #{chb061s}
+       </foreach> 
+  </delete>
+  
+  <!-- 新增教师信息 -->
+  <insert id="addTeacher" parameterType="Hb61">
+     <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chb061"> 
+            select sys_guid() from dual 
+     </selectKey>
+    insert into hb61
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+        chb061,
+      <if test="aab001 != null">
+        AAB001,
+      </if>
+      <if test="aac003 != null">
+        AAC003,
+      </if>
+      <if test="aac002 != null">
+        AAC002,
+      </if>
+      <if test="aac004 != null">
+        AAC004,
+      </if>
+      <if test="aac006 != null">
+        AAC006,
+      </if>
+      <if test="aac024 != null">
+        AAC024,
+      </if>
+      <if test="aac011 != null">
+        AAC011,
+      </if>
+      <if test="aae005 != null">
+        AAE005,
+      </if>
+      <if test="aae011 != null">
+        AAE011,
+      </if>
+      <if test="aae036 != null">
+        AAE036,
+      </if>
+      <if test="aae100 != null">
+        aae100,
+      </if>
+       <if test="aae012 != null">
+        aae012,
+      </if>
+       <if test="eae052 != null">
+        eae052,
+      </if>
+        ecd302,
+      <if test="ecd296 != null">
+        ecd296,
+      </if>
+      <if test="aae013 != null">
+        aae013,
+      </if>
+      <if test="bus_uuid != null">
+        bus_uuid,
+      </if>
+      <if test="ecd301 != null">
+        ecd301
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+        #{chb061,jdbcType=VARCHAR},
+      <if test="aab001 != null">
+        #{aab001,jdbcType=VARCHAR},
+      </if>
+      <if test="aac003 != null">
+        #{aac003,jdbcType=VARCHAR},
+      </if>
+      <if test="aac002 != null">
+        #{aac002,jdbcType=VARCHAR},
+      </if>
+      <if test="aac004 != null">
+        #{aac004,jdbcType=VARCHAR},
+      </if>
+      <if test="aac006 != null">
+        #{aac006,jdbcType=DATE},
+      </if>
+      <if test="aac024 != null">
+        #{aac024,jdbcType=VARCHAR},
+      </if>
+      <if test="aac011 != null">
+        #{aac011,jdbcType=VARCHAR},
+      </if>
+      <if test="aae005 != null">
+        #{aae005,jdbcType=VARCHAR},
+      </if>
+      <if test="aae011 != null">
+        #{aae011,jdbcType=VARCHAR},
+      </if>
+      <if test="aae036 != null">
+        #{aae036,jdbcType=TIMESTAMP},
+      </if>
+      <if test="aae100 != null">
+        #{aae100,jdbcType=VARCHAR},
+      </if>
+      <if test="aae012 != null">
+        #{aae012,jdbcType=VARCHAR},
+      </if>
+      <if test="eae052 != null">
+        #{eae052,jdbcType=VARCHAR},
+      </if>
+      <if test="ecd302_a != null and ecd302_a != '' and ecd302_a != '00'">
+        #{ecd302_a,jdbcType=VARCHAR},
+      </if>
+      <if test="ecd302_b != null and ecd302_b != '' and ecd302_b != '00'">
+        #{ecd302_b,jdbcType=VARCHAR},
+      </if>
+      <if test="ecd296 != null">
+        #{ecd296,jdbcType=VARCHAR},
+      </if>
+      <if test="aae013 != null">
+        #{aae013,jdbcType=VARCHAR},
+      </if>
+      <if test="bus_uuid != null">
+        #{bus_uuid,jdbcType=VARCHAR},
+      </if>
+      <if test="ecd301 != null">
+        #{ecd301,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  
+  <!-- 更新教师信息 -->
+  <update id="updateTeacher" parameterType="Hb61">
+    update hb61
+    <set>
+      <if test="aac003 != null">
+        AAC003 = #{aac003,jdbcType=VARCHAR},
+      </if>
+      <if test="aac002 != null">
+        AAC002 = #{aac002,jdbcType=VARCHAR},
+      </if>
+      <if test="aac004 != null">
+        AAC004 = #{aac004,jdbcType=VARCHAR},
+      </if>
+      <if test="aac006 != null">
+        AAC006 = #{aac006,jdbcType=DATE},
+      </if>
+      <if test="aac024 != null">
+        AAC024 = #{aac024,jdbcType=VARCHAR},
+      </if>
+      <if test="aac011 != null">
+        AAC011 = #{aac011,jdbcType=VARCHAR},
+      </if>
+      <if test="aae005 != null">
+        AAE005 = #{aae005,jdbcType=VARCHAR},
+      </if>
+      <if test="aae011 != null">
+        AAE011 = #{aae011,jdbcType=VARCHAR},
+      </if>
+      <if test="eae052 != null">
+        eae052 = #{eae052,jdbcType=VARCHAR},
+      </if>
+      <if test="ecd302_a != null and ecd302_a != '' and ecd302_a != '00'">
+        ecd302 = #{ecd302_a,jdbcType=VARCHAR},
+      </if>
+      <if test="ecd302_b != null and ecd302_b != '' and ecd302_b != '00'">
+        ecd302 = #{ecd302_b,jdbcType=VARCHAR},
+      </if>
+      <if test="ecd296 != null">
+        ecd296 = #{ecd296,jdbcType=VARCHAR},
+      </if>
+      <if test="aae013 != null">
+        aae013 = #{aae013,jdbcType=VARCHAR},
+      </if>
+      <if test="bus_uuid != null">
+        bus_uuid = #{bus_uuid,jdbcType=VARCHAR},
+      </if>
+      <if test="ecd301 != null">
+        ecd301 = #{ecd301,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where chb061 = #{chb061,jdbcType=VARCHAR}
+  </update>
+  
+  <!-- 通过师资内码查询资质信息 -->
+  <select id="getQualificationList" parameterType="java.lang.String" resultType="Hc74">
+    select 
+    	chc074,
+	    chb061,
+	    aac002,
+	    aca111,
+	    (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102 = t.aca111) aca111_name,
+	    (case when chc043 is null then '-1' when chc043 &gt;= sysdate then '1' else '0' end) flag,
+	    to_char(chc043,'yyyy-MM-dd') chc043_string,
+	    aab004,
+	    aae013,
+	    edc298,
+        (SELECT M.FILE_REL_PATH
+          FROM S_FILE_RECORD M, S_BUS_FILE_RECORD N
+          WHERE M.FILE_UUID = N.FILE_UUID
+          AND N.BUS_UUID = t.BUS_UUID) photo_url
+    from hc74 t
+    <where> 
+    	t.aae100 = '1' and t.chb061 = #{chb061,jdbcType=VARCHAR}
+       order by t.aae036 desc
+    </where> 
+  </select>
+  
+  <!-- 新增教师资质信息 -->
+  <insert id="saveQualification" parameterType="Hc74">
+     <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chc074"> 
+            select sys_guid() from dual 
+     </selectKey>
+    insert into hc74
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+        chc074,
+      <if test="chb061 != null">
+        chb061,
+      </if>
+      <if test="aca111 != null">
+        aca111,
+      </if>
+      <if test="aac002 != null">
+        AAC002,
+      </if>
+      <if test="aae011 != null">
+        AAE011,
+      </if>
+      <if test="aae036 != null">
+        AAE036,
+      </if>
+      <if test="aae100 != null">
+        aae100,
+      </if>
+      <if test="edc298 != null">
+        edc298,
+      </if>
+      <if test="chc043_string != null">
+        chc043,
+      </if>
+      <if test="aab004 != null">
+        aab004,
+      </if>
+      <if test="aae013 != null">
+        aae013,
+      </if>
+      <if test="bus_uuid != null">
+        bus_uuid,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+        #{chc074,jdbcType=VARCHAR},
+      <if test="chb061 != null">
+        #{chb061,jdbcType=VARCHAR},
+      </if>
+      <if test="aca111 != null">
+        #{aca111,jdbcType=VARCHAR},
+      </if>
+      <if test="aac002 != null">
+        #{aac002,jdbcType=VARCHAR},
+      </if>
+      <if test="aae011 != null">
+        #{aae011,jdbcType=VARCHAR},
+      </if>
+      <if test="aae036 != null">
+        #{aae036,jdbcType=TIMESTAMP},
+      </if>
+      <if test="aae100 != null">
+        #{aae100,jdbcType=VARCHAR},
+      </if>
+      <if test="edc298 != null">
+        #{edc298,jdbcType=VARCHAR},
+      </if>
+      <if test="chc043_string != null">
+        to_date(#{chc043_string,jdbcType=VARCHAR},'yyyy-MM-dd'),
+      </if>
+      <if test="aab004 != null">
+        #{aab004,jdbcType=VARCHAR},
+      </if>
+      <if test="aae013 != null">
+        #{aae013,jdbcType=VARCHAR},
+      </if>
+      <if test="bus_uuid != null">
+        #{bus_uuid,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  
+  <!-- 更新教师资质信息 -->
+  <update id="updateQualification" parameterType="Hc74">
+    update hc74
+    <set>
+      <if test="aac002 != null">
+        AAC002 = #{aac002,jdbcType=VARCHAR},
+      </if>
+      <if test="aca111 != null">
+        aca111 = #{aca111,jdbcType=VARCHAR},
+      </if>
+      <if test="aae011 != null">
+        AAE011 = #{aae011,jdbcType=VARCHAR},
+      </if>
+      <if test="edc298 != null">
+        edc298 = #{edc298,jdbcType=VARCHAR},
+      </if>
+      <if test="chc043_string != null">
+        chc043 = to_date(#{chc043_string,jdbcType=VARCHAR},'yyyy-MM-dd'),
+      </if>
+      <if test="aab004 != null">
+        aab004 = #{aab004,jdbcType=VARCHAR},
+      </if>
+      <if test="aae013 != null">
+        aae013 = #{aae013,jdbcType=VARCHAR},
+      </if>
+        <if test="bus_uuid != null">
+            bus_uuid = #{bus_uuid,jdbcType=VARCHAR},
+        </if>
+    </set>
+    where chc074 = #{chc074,jdbcType=VARCHAR}
+  </update>  
+  
+  <!-- 通过资质内码删除教师资质 -->
+  <delete id="deleteQualification" parameterType="java.lang.String">
+    delete from hc74
+    where chc074 = #{chc074,jdbcType=VARCHAR}
+  </delete>
+  
+  <!-- 资质校验 -->
+  <select id="checkQualification" parameterType="Hc74" resultType="Hc74">
+    select 
+    	chc074,
+	    chb061,
+	    aac002,
+	    aca111,
+	    (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102 = t.aca111) aca111_name,
+	    aae013,
+	    edc298
+    from hc74 t
+    <where> 
+    	t.aae100 = '1' and chb061 = #{chb061,jdbcType=VARCHAR}
+    	and aca111 = #{aca111,jdbcType=VARCHAR}
+    	<if test="chc074 != null and chc074 != ''">
+    	and	chc074 != #{chc074,jdbcType=VARCHAR}
+    	</if>
+    </where> 
+  </select>
+  
+  <!-- 通过资质内码查询资质信息 -->
+  <select id="getQualification" parameterType="java.lang.String" resultType="Hc74">
+    select 
+    	chc074,
+	    chb061,
+	    aac002,
+	    aca111,
+	    (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102 = t.aca111) aca111_name,
+	    to_char(chc043,'yyyy-MM-dd') chc043_string,
+	    aab004,
+	    aae013,
+	    edc298,
+        bus_uuid,
+        (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=t.bus_uuid) photo_url
+    from hc74 t
+    <where> 
+    	t.aae100 = '1' and t.chc074 = #{chc074,jdbcType=VARCHAR}
+    </where> 
+  </select>
+  
+  <!-- 教师信息列表查询 -->
+  <select id="getTeacherClasses" parameterType="Hb61" resultType="Hb68">
+    select 
+	     chb100,
+	     to_char(t.chb107,'yyyy-MM-dd') chb107,
+	     to_char(t.chb108,'yyyy-MM-dd') chb108,
+	     (select code_name from code_value where code_type = 'CHB103' and code_value=t.chb103) chb103,
+	     (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102=t.aca111) aca111,
+	     (select count(1) from hc60 c where c.chb068 = t.chb068 and c.aae100 = '1' and c.eae052 = '1') chb106,
+	     (select count(1) from hc66 where aae100 = '1' and chb068 = t.chb068 and chc018 = '1') countHG,
+	     (select code_name from code_value where code_type = 'CHB111' and code_value=t.chb111) chb111
+    from hb68 t
+   where
+    	 t.aae100 = '1' 
+     and t.aab001 = #{baseinfoid}
+     and t.chb068 in (select distinct chb068 from hb69 where aac002 = #{aac002} and aae100 = '1')
+   order by t.chb107 desc 
+  </select>
+  
+</mapper>

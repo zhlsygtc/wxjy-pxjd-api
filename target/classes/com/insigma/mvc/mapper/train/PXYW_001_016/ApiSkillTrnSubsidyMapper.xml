@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.train.PXYW_001_016.ApiSkillTrnSubsidyMapper">
+  	
+  	<!-- 合并班级信息列表查询 -->
+	  <select id="getClasssList" parameterType="Hb67" resultType="Hb67">
+	    select 
+		    chb067,
+		    chb101,
+		    (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102 = t.aca111) aca111,
+        	(select code_name from code_value where code_type = 'CHB103' and code_value = t.chb103) chb103,
+		    to_char(chb107, 'yyyy-MM-dd') chb107,
+        	to_char(chb108, 'yyyy-MM-dd') chb108,
+        	chb106,
+        	chb105
+	    from hb67 t
+	    <where> 
+	    	t.aae100 = '1' and t.chb103 = '3' and t.CHB188 = '4'
+	      <if test="aab001!=null">
+	        and t.aab001 = #{aab001} 
+	      </if>
+	      <if test="chb101!=null">
+	        and t.chb101 like '%'||#{chb101}||'%' 
+	      </if>
+	      <if test="aca111!=null">
+	        and t.aca111=#{aca111}
+	      </if>
+	      <if test="chb107!=null">
+        	and to_char(chb107,'yyyy-MM-dd') <![CDATA[>=]]> #{chb107}
+	      </if>
+	      <if test="chb108!=null">
+	        and to_char(chb108,'yyyy-MM-dd') <![CDATA[<=]]> #{chb108}
+	      </if>
+	       order by t.chb107 desc
+	    </where> 
+	  </select>
+  
+  	  <!-- 查询培训学员信息 -->
+      <select id="getStuList" parameterType="Student" resultType="Student">
+	       select 
+	    		a.chc001,
+		        a.aac003,
+		        a.aac002,
+		        a.aae005,
+		        (select code_name from code_value where code_type = 'AAC004' and code_value=a.aac004) aac004,
+		        (select code_name from code_value where code_type = 'CHC002' and code_value=a.chc002) chc002,
+		        decode(length(a.aac002),'18',(to_char(sysdate,'yyyy')-substr(a.aac002,7,4)),(to_char(sysdate,'yyyy')-('19'||substr(a.aac002,7,2)))) age,
+		        b.chc023,
+		        b.aab004
+		    from
+		    	hc60 a,hc67 b,hc66 c
+		    where
+		    	a.aae100 = '1' and a.eae052 = '1'
+		    and 
+		        a.chc001 = c.chc001
+		    and 
+		        c.chc018 = '1'
+		    and 
+		    	a.chc001 = b.chc001
+		    and
+		    	a.chb068 in (select chb068 from hb66 where chb067 = #{chb067})
+		    <!-- and
+		    	not exists (select 1 from dd30 where aac001 = (select * from (select aac001 from ce01 where aac002 = (select aac002 from hc60 where chc001 = c.chc001) order by aae036 desc) where rownum = 1) and chb067 = #{chb067}) -->
+			order by a.chc066
+     </select>
+  
+  	<!-- 通过学员内码获取CE01 -->
+  	<select id="getCe01" parameterType="String" resultType="Ce01">
+  		select * from (select eec001,aac001,aac002,aac003 from ce01 where aac002 = (select aac002 from hc60 where chc001 = #{chc001}) order by aae036 desc) where rownum = 1
+  	</select>
+  
+    <!-- 获取对应学员姓名 -->
+    <select id="getHc60" parameterType="String" resultType="String">
+    	select aac003 from hc60 where chc001 = #{chc001}
+    </select>
+    
+    <!-- 校验是否重复申请 -->
+    <select id="check" parameterType="String" resultType="String">
+    	select count(1) from dd30 where aac001 = #{aac001} and chb067 = #{chb067}
+    </select>
+    
+    <!-- 得到批次号 -->
+    <select id="getEec100_suffix" resultType="String">
+    	select JY_ZJ.SB_ADD908.nextval from dual
+    </select>
+    
+    <!-- 保存技能培训补贴申请信息  -->
+    <insert id="save" parameterType="Student">
+    	insert all into dd30
+			  (edd301,
+			   eec100,
+			   eec102,
+			   aac001,
+			   edf151,
+			   add553,
+			   add555,
+			   add559,
+			   add801,
+			   add802,
+			   add803,
+			   add806,
+			   add560,
+			   aab301,
+			   edd281,
+			   aae011,
+			   aae010,
+			   aaf011,
+			   aae009,
+			   aae036,
+			   add571,
+			   add578,
+			   add937,
+			   add944,
+			   aae100,
+			   add592,
+			   add845,
+			   chb067
+			   )
+			values
+			  (sys_guid(),
+			   #{param},
+			   #{chc066},
+			   #{aac001},
+			   #{baseinfoid},
+			   add553,
+			   add555,
+			   add559,
+			   add801,
+			   add802,
+			   add803,
+			   add806,
+			   add560,
+			   aab301,
+			   #{flag},
+			   #{userid},
+			   aae010,
+			   #{baseinfoid},
+			   aae009,
+			   sysdate,
+			   '0',
+			   '0',
+			   '0',
+			   '0',
+			   '1',
+			   '0',
+			   '0',
+			   #{chb067}
+			   )
+			   select 
+			   		a.aca111 add553,a.aca11a add555,b.chc002 add559,a.chb107 add801,a.chb108 add802,
+			   		(select sum(chb109) from hb69 where chb068 = a.chb068) add803,chc023 add806,
+			   		decode(substr(a.aca111,1,2),'01',(SELECT ADD721 FROM DD40 WHERE ADD606='100' AND ADD710=a.aca11a),'02',(select ADD721 from dd40 where ADD606 = '100' AND ADD710 = '06'),'0') add560,
+			   		(select PARENTID from smt_group where groupid = #{baseinfoid}) aab301,
+			   		(select username from s_user where userid = #{userid}) aae010,
+			   		(select name from smt_group where groupid = #{baseinfoid}) aae009
+				 from hb68 a,hc60 b,hc67 c
+    			where a.chb068 = b.chb068
+   				  and b.chc001 = #{chc001}
+   				  and b.chc001 = c.chc001
+    </insert>
+    
+   <!--  补贴数据导入批次表 -->
+    <insert id="insertDd41" parameterType="Student">
+    	insert all into dd41
+  			(edd411, aab301, eec100, eey003, add606, aae011, aae010, aae009, aaf011, aae036, aae013, aae100)
+		values
+  			(sys_guid(), aab301, #{param}, #{baseinfoid}, '100', #{userid}, aae010, aae009, #{baseinfoid}, sysdate, '', '1')
+  		    select (select PARENTID from smt_group where groupid = #{baseinfoid}) aab301,
+  		    	   (select username from s_user where userid = #{userid}) aae010,
+  		    	   (select name from smt_group where groupid = #{baseinfoid}) aae009
+  		      from dual
+    </insert>
+    
+    <!-- 根据合并班级内码查询合并班级信息 -->
+    <select id="getHb67ById" parameterType="Hb67" resultType="Hb67">
+		select 
+		  to_char(chb107,'yyyy-MM-dd') chb107,
+		  to_char(chb108,'yyyy-MM-dd') chb108,
+		  chb101,
+		  (select code_name from code_value where code_type='CHB103' and code_value = chb103) chb103,
+		  (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = aca111) aca111,
+		  chb105,
+		  chb106,
+		  chb189,
+		  (select code_name
+		          from code_value
+		         where code_type = 'ACA119'
+		           and code_level = '2'
+		           and code_value = (select par_code_value
+		                               from code_value
+		                              where code_type = 'ACA109'
+		                                and code_value =  a.aca111 and code_level = '3' )) aca113,
+	      (select code_name
+			          from code_value
+			         where code_type = 'ACA119'
+			           and code_level = '1'
+			           and code_value =(select par_code_value 
+			                                       from code_value
+			                                      where code_type = 'ACA119' and code_level = '2'
+			                                        and code_value = (
+			                                        				 select par_code_value 
+			                                        				   from code_value
+			                                        				  where code_type = 'ACA109' and code_level = '3' 
+			                                        				    and code_value = a.aca111))) aca112,
+		  chb067
+		from 
+		  hb67 a
+		where 
+		  chb067 = #{chb067}
+    </select>
+    
+      <!-- 学员申请补贴信息 -->
+      <select id="getApplyStusForLook" parameterType="Student" resultType="Student">
+	       select 
+	    		a.chc001,
+		        a.aac003,
+		        a.aac002,
+		        a.aae005,
+		        (select code_name from code_value where code_type = 'AAC004' and code_value=a.aac004) aac004,
+		        (select code_name from code_value where code_type = 'CHC002' and code_value=a.chc002) chc002,
+		        decode(length(a.aac002),'18',(to_char(sysdate,'yyyy')-substr(a.aac002,7,4)),(to_char(sysdate,'yyyy')-('19'||substr(a.aac002,7,2)))) age,
+		        b.add806 chc023,
+		        b.add560,
+		        b.add561,
+		        (select code_name from code_value where code_type = 'ADD592' and code_value=b.add592) add592
+		    from
+		    	hc60 a,dd30 b
+		    where
+		    	a.chb068 in (select chb068 from hb66 where chb067 = #{chb067})
+		    and 
+		        b.aac001 = (select * from (select aac001 from ce01 where aac002 = a.aac002 order by aae036 desc) where rownum = 1)
+		    and
+		    	b.chb067 = #{chb067}
+			order by a.chc066
+     </select>
+    
+</mapper>

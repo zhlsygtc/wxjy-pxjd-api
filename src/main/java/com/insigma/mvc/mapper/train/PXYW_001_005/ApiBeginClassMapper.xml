@@ -1,0 +1,873 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.train.PXYW_001_005.ApiBeginClassMapper">
+    <!-- 查询开班信息列表 -->
+    <select id="getInfoList" parameterType="Hb68" resultType="Hb68">
+    select
+        decode(nvl((select count(1)  from hc60 c where c.chb068= a.chb068 and c.eae052 = '1'), 0),0,'0','1') stu,
+        decode(nvl((select count(1)  from hb69 where chb068= a.chb068 and aae100 = '1'), 0),0,'0','1') cou,
+        nvl((select count(1)  from hc60 c where c.chb068= a.chb068 and c.eae052 = '1'), 0) count,
+        chb100,
+        chb068,
+        aae001,
+        chb315,
+        (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102=a.aca111) aca111,
+        (select code_name from code_value where code_type = 'CHB103' and code_value=a.chb103) chb103,
+        chb106,
+        to_char(chb107, 'yyyy-MM-dd') chb107,
+        to_char(chb108, 'yyyy-MM-dd') chb108,
+        chb326,
+        decode(sign(sysdate-(select aaa005 from aa01 where aaa001 = 'BEGINCLASSDAY')-chb107),'1','0','1') flag,<!-- 随州特殊业务，开班两天内可以增加学员 --> 
+        (select code_name from code_value where code_type = 'CHB111' and code_value=a.chb111) chb111
+    from
+        HB68 a
+    where
+         aae100 = '1'
+    and  
+    	aab001 = #{aab001}
+        <if test="chb100!=null">
+            and chb100=#{chb100}
+        </if>
+        <if test="aca111!=null">
+            and aca111 = #{aca111}
+        </if>
+        <if test="chb103!=null">
+            and chb103 in 
+            <foreach item="item" collection="chb103s" open="(" separator="," close=")">
+            	#{item}
+        	</foreach>
+        </if>
+        <if test="chb107!=null">
+        	and to_char(chb107,'yyyy-MM-dd') <![CDATA[>=]]> #{chb107}
+        </if>
+        <if test="chb108!=null">
+        	and to_char(chb108,'yyyy-MM-dd') <![CDATA[<=]]> #{chb108}
+        </if>
+        <if test="chb315!=null">
+            and chb315 in 
+            <foreach item="item" collection="chb315s" open="(" separator="," close=")">
+            	#{item}
+        	</foreach>
+        </if>
+   			order by chb315,chb100 desc
+    </select>
+    <!-- 根据ID查询班级信息 -->
+    <select id="getById" parameterType="String" resultType="Hb68">
+	    select
+	    	a.aab001,
+	    	a.chb068,
+	    	a.chb100,
+	    	aca013 aca111,
+	    	(select aaa103
+             from v_aa10
+	         where aaa100 = 'ACA109'
+             and aaa102 =a.aca111) aca111_s,
+             (select code_name
+             from code_value
+	         where code_type = 'CHB103'
+             and code_value =a.chb103) chb103_s,
+             (select code_name
+             from code_value
+	         where code_type = 'CHB372'
+             and code_value =a.chb372) chb372_s,
+	    	(select code_name
+             from code_value
+	         where code_type = 'AAC183'
+             and code_value = (select substr(par_code_value, 0, instr(par_code_value, ',') - 1)
+		                               from code_value
+		                              where code_type = 'ACA109'
+		                                and code_seq = (select aca111 from ca13 where aca013 = a.aca013))) aca113,
+	        (select code_name
+          	 from code_value
+        	 where code_type = 'ACA110'
+             and code_value =
+	               (select substr(par_code_value, instr(par_code_value, ',') + 1, length(par_code_value)-1)
+		                               from code_value
+		                              where code_type = 'ACA109'
+		                                and code_seq = (select aca111 from ca13 where aca013 = a.aca013))) aca112,
+	        a.chb103,
+	        to_char(a.chb107, 'yyyy-MM-dd') chb107,
+	        to_char(a.chb108, 'yyyy-MM-dd') chb108,
+	        a.chb372,
+	        a.aca131,
+	        a.aae004,
+	        a.acb502,
+	        a.chb106,
+	        a.chb105,
+	        a.gps,
+	        a.gps_lon,
+	        a.gps_lat,
+	        a.chb319,
+	        (select count(1)  from hc60 c where c.chb068= a.chb068 and c.eae052 = '1') stu,
+            (select count(1)  from hb69 where chb068= a.chb068 and aae100 = '1') cou,
+            a.chb057,
+            b.aac003 chb057_name,
+            aca013,
+            (select aca131 from ca13 where aca013 = a.aca013) aca131,
+            (select aca134 from ca13 where aca013 = a.aca013) aca134,
+            (select aca135 from ca13 where aca013 = a.aca013) aca135,
+            aab301,
+       		(select name from smt_group where groupid = a.aab301) aab301_s
+	    from
+	        HB68 a
+	    join HB57 b on a.chb057 = b.chb057
+	    where
+	        a.aae100 = '1'
+	    and 
+	    	a.chb100=#{chb100}
+    </select>
+    <!-- 获取smtgroup对象 -->
+     <select id="getSmtGroupById" parameterType="String" resultType="SmtGroup">
+	    select
+	    	linkman,
+	    	tel,
+	    	address
+	    from
+	        smt_group
+	    where
+	    	groupid=#{groupid}
+    </select>
+     <!-- 获取该机构对应的行政区划 -->
+     <select id="getCompanyAab301" parameterType="String" resultType="SmtGroup">
+        select groupid parentid from smt_group where division_level = '3'
+       		start with groupid = #{groupid} connect by prior parentid = groupid
+    </select>
+ 	<!-- 获取上级部门 -->
+  	<select id="getAab301List" parameterType="CodeValue" resultType="CodeValue">
+  	select groupid code_value,name code_name from smt_group 
+  	where parentid in
+		(select parentid from smt_group 
+			where groupid in 
+				(select parentid from smt_group 
+					where length(groupid) = '32' and division_level = '9'))
+	and status = '1'
+  	</select>
+	<!-- 保存开班申报信息 -->
+    <insert id="saveBaseInfo" parameterType="Hb68">
+        <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chb068">
+            select sys_guid() from dual
+        </selectKey>
+        insert into HB68(
+        	chb068,
+			aae001,
+			aab001,
+			aca111,
+			chb526,
+			chb105,
+			chb106,
+			chb107,
+			chb108,
+			aae004,
+			acb502,
+			aae015,
+			chb111,
+			aae100,
+			aae011,
+			aae013,
+			aae036,
+			chb310,
+			chb311,
+			chb315,
+			chb326,
+			chb372,
+			aca131,
+			chb103,
+			chb100,
+			chb527,
+			gps,
+			gps_lon,
+			gps_lat,
+			chn198,
+			chb528,
+			chb355,
+			chb121,
+			aae110,
+			chb057,
+			aca013,
+			aab301
+        )
+        values(
+        	#{chb068},
+			TO_CHAR(to_date(#{chb107}, 'yyyy-MM-dd'),'yyyyMM'),
+			#{aab001},
+			(select code_value from code_value where code_seq = (select aca111 from ca13 where aca013 = #{aca111})),
+			'',
+			#{chb105},
+			#{chb106},
+			to_date(#{chb107}, 'yyyy-MM-dd'),
+			to_date(#{chb108}, 'yyyy-MM-dd'),
+			#{aae004},
+			#{acb502},
+			#{aae015},
+			'00',
+			'1',
+			#{aae011},
+			#{aae013},
+			SYSDATE,
+			#{aae011},
+			SYSDATE,
+			'0',
+			'0',
+			#{chb372},
+			#{aca131},
+			#{chb103},
+			#{chb100},
+			'0',
+			#{gps},
+			#{gps_lon},
+			#{gps_lat},
+			'0',
+			'0',
+			'0',
+			'0',
+			'0',
+			#{chb057},
+			#{aca111},
+			#{aab301}
+           )
+    </insert>
+    <!-- 修改开班申报信息 -->
+    <update id="updateBaseInfo" parameterType="Hb68">
+        update HB68
+        set(
+			aae001,
+			aca111,
+			chb105,
+			chb106,
+			chb107,
+			chb108,
+			aae004,
+			acb502,
+			chb111,
+			aae011,
+			aae013,
+			aae036,
+			chb315,
+			chb326,
+			chb372,
+			aca131,
+			chb103,
+			gps,
+			gps_lon,
+			gps_lat,
+			aca013,
+			aab301
+        )
+        =(	select 
+			TO_CHAR(to_date(#{chb107}, 'yyyy-MM-dd'),'yyyyMM'),
+			(select code_value from code_value where code_seq = (select aca111 from ca13 where aca013 = #{aca111})),
+			#{chb105},
+			#{chb106},
+			to_date(#{chb107}, 'yyyy-MM-dd'),
+			to_date(#{chb108}, 'yyyy-MM-dd'),
+			#{aae004},
+			#{acb502},
+			'00',
+			#{aae011},
+			#{aae013},
+			SYSDATE,
+			'0',
+			'0',
+			#{chb372},
+			#{aca131},
+			#{chb103},
+			#{gps},
+			#{gps_lon},
+			#{gps_lat},
+			#{aca111},
+			#{aab301}
+			from dual
+           )
+           where 
+           chb068 = #{chb068}
+    </update>
+	<!-- 根据专业名称查询培训工种名称及专业类别 -->
+	<select id="getAca112" parameterType="String" resultType="Hb68">
+	    	select ((select code_name
+		          from code_value
+		         where code_type = 'AAC183'
+		           and code_value = (select substr(par_code_value, 0, instr(par_code_value, ',') - 1)
+		                               from code_value
+		                              where code_type = 'ACA109'
+		                                and code_seq = (select aca111 from ca13 where aca013 = #{aca110}))) || ',' ||
+			       (select code_name
+			          from code_value
+			         where code_type = 'ACA110'
+			           and code_value =(select substr(par_code_value, instr(par_code_value, ',') + 1, length(par_code_value)-1)
+			                                       from code_value
+			                                      where code_type = 'ACA109'
+			                                        and code_seq =(select aca111 from ca13 where aca013 = #{aca110})))) as aca110
+		  from dual 
+    </select>
+    <!-- 根据专业名称获取补贴标准 -->
+    <select id="getAca131" parameterType="String" resultType="Hb68">
+    	  select  aca131,aca134,aca135
+		  from ca13 
+		  where aca013 = #{aca109}
+    </select>
+    <!-- 查询该班级下的学员信息列表 -->
+    <select id="getStuList" parameterType="Student" resultType="Student">
+    	select 
+    		chc001,
+    		chc111,
+	        aac003,
+	        aac002,
+	        chc003,
+	        (select code_name from code_value where code_type = 'AAC004' and code_value=aac004) aac004,
+	        (select code_name from code_value where code_type = 'CHC002' and code_value=chc002) chc002,
+	        decode(length(aac002),'18',(to_char(sysdate,'yyyy')-substr(aac002,7,4)),(to_char(sysdate,'yyyy')-('19'||substr(aac002,7,2)))) age,
+	        (select code_name from code_value where code_type = 'AAC011' and code_value=aac011) aac011,
+	        aae005,
+	        aac026,
+	        (select to_char(ecc064,'yyyy-MM-dd') from hc61 where chc111 = a.chc111) ecc064,
+	        chc066
+	    from
+	    	hc60 a
+	    where
+	    	aae100 = '1' and a.eae052 = '1'
+	    and
+	    	chb068 = (select chb068 from hb68 where chb100 = #{chb100})
+		order by chc066
+    </select>
+    <!-- 获取开班编号 -->
+    <select id="getChb100"  resultType="String">
+    	select 
+    		to_char(sysdate,'yyyy')||lpad(nvl((max(substr(chb100,-5,5))+1),1),5,0) 
+    	from 
+    		hb68 
+    	where 
+    		substr(chb100,1,4)=to_char(sysdate,'yyyy')
+     </select>
+    <!-- 查询学员库学员信息列表 -->
+    <select id="getCheck" parameterType="Student" resultType="Student">
+		 select
+	        chc111,
+	        aac003,
+	        aac002,
+	        chc003,
+	        (select code_name from code_value where code_type = 'AAC004' and code_value=aac004) aac004,
+	        (select code_name from code_value where code_type = 'CHC002' and code_value=chc002) chc002,
+	        decode(length(aac002),'18',(to_char(sysdate,'yyyy')-substr(aac002,7,4)),(to_char(sysdate,'yyyy')-('19'||substr(aac002,7,2)))) age,
+	        (select code_name from code_value where code_type = 'AAC011' and code_value=aac011) aac011,
+	        aae005,
+	        aac026,
+	        to_char(ecc064,'yyyy-MM-dd') ecc064,
+	        chc066
+	  	from
+	  		hc61
+	  	where
+	        aae100 = '1'
+	    and	isselected = '0'
+	    and chc301='1'
+        and aab001 = #{aab001}
+        <if test="ecc064_a!=null">
+            and to_char(chc302,'yyyy-MM-dd') <![CDATA[>=]]> #{ecc064_a}
+        </if>
+        <if test="ecc064_b!=null">
+            and to_char(chc302,'yyyy-MM-dd') <![CDATA[<=]]> #{ecc064_b}
+        </if>
+         <if test="chb100!=null">
+            and aca111 in (select aca111 from hb68 where chb100 = #{chb100} and aab001 = #{aab001})
+        </if>
+		order by chc066
+    </select>
+    <!-- 保存学员 -->
+    <insert id="saveStu" parameterType="Student">
+        <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chc001">
+            select sys_guid() from dual
+        </selectKey>
+        insert all into hc60(
+        	chc001,
+			chb068,
+			aac001,
+			aac002,
+			chc002,
+			chc003,
+			aae013,
+			aac007,
+			aac003,
+			aac004,
+			aac006,
+			aac011,
+			aae005,
+			aac026,
+			aac026,
+			chc009,
+			chc066,
+			aac005,
+			aae011,
+			ecc064,
+			aae036,
+			eae052,
+			aae100,
+			aab001,
+			chc111,
+			czc018,
+			chc029
+        )
+        values(
+        	#{chc001},
+			(select chb068 from hb68 where chb100 = #{chb100}),
+			aac001,
+			aac002,
+			chc002,
+			chc003,
+			aae013,
+			aac007,
+			aac003,
+			aac004,
+			aac006,
+			aac011,
+			aae005,
+			aac026,
+			aac026,
+			chc009,
+			chc066,
+			aac005,
+			#{aae011},
+			sysdate,
+			sysdate,
+			'1',
+			'1',
+			aab001,
+			chc111,
+			'1',
+			'0'
+           ) 
+           select * 
+           from hc61
+           where chc111 =#{chc111}
+           and isselected = '0'
+           and aae100 = '1'
+           order by chc066
+    </insert>
+		<!-- 通过主键删除开班信息 -->
+		<!-- 删除班级信息 -->
+		    <delete id="delClassBase" parameterType="Hb68">
+			    delete from 
+			    	hb68
+			    where chb068 = #{chb068}
+		    </delete>
+		    <!-- 删除学员信息 -->
+		    <delete id="delClassStu" parameterType="Hb68">
+			    delete from
+			     	hc60
+			    where chb068 = #{chb068}
+		    </delete>
+		    <!-- 更新hc61表学员库学员状态 -->
+		    <update id="updateStu" parameterType="Hb68">
+		    	update 
+		    		hc61 
+		    	set 
+		    		isselected = '0' 
+		    	where 
+		    		isselected = '1'
+		    	and
+		    		chc111 in (select chc111 from hc60 where chb068 = #{chb068})
+	    	</update>
+	    <!-- 提交开班信息 -->
+	    <update id="submitClass" parameterType="Hb68">
+		    update hb68
+		    set chb111 = '01',
+		    	chb310 = #{chb310},
+		    	chb311 = sysdate,
+		    	chb326 = '1',
+		    	chb315 = '0',
+		    	chb319 = ''
+		    where chb068 = #{chb068}
+	    </update>
+	    <!-- 撤销开班信息(共两步)-->
+	    <!-- 1.查看当前培训班级的成绩录入状态是否为未录入 -->
+	    <select id="checkStatus" parameterType="String" resultType="Hb68">
+	    	select chn198,chb068
+	    	from hb68
+	    	where chb068 = #{chb068}
+	    </select>
+	    <!-- 2.执行撤销操作 -->
+	    <update id="revokeClass" parameterType="Hb68">
+		    update hb68
+		    set chb111 = '00',
+		    	chb315 = '0',
+		    	chb326 = '0'
+		    where chb068 = #{chb068}
+	    </update>
+	    
+	    <!-- 查询培训学员信息 -->
+	    <select id="getStuListForLook" parameterType="String" resultType="Student">
+	    	select 
+	    		chc111,
+		        aac003,
+		        aac002,
+		        chc003,
+		        (select code_name from code_value where code_type = 'AAC004' and code_value=aac004) aac004,
+		        (select code_name from code_value where code_type = 'CHC002' and code_value=chc002) chc002,
+		        decode(length(aac002),'18',(to_char(sysdate,'yyyy')-substr(aac002,7,4)),(to_char(sysdate,'yyyy')-('19'||substr(aac002,7,2)))) age,
+		        (select code_name from code_value where code_type = 'AAC011' and code_value=aac011) aac011,
+		        aae005,
+		        aac026,
+		        (select to_char(ecc064,'yyyy-MM-dd') from hc61 where chc111 = a.chc111) ecc064,
+		        chc066
+		    from
+		    	hc60 a
+		    where
+		    	aae100 = '1' and a.eae052 = '1'
+		    and 
+		    	chb068 = (select chb068 from hb68 where chb100 = #{chb100})
+			order by chc066
+	    </select>
+	    <!-- 查询导入文件的批次号 -->
+		<select  id="getExcel_batch_number"  parameterType="Hb69Temp" resultType="java.lang.String">
+		    select max(excel_batch_number) from s_excel_batch where excel_batch_aae011 = #{userid} and excel_batch_excel_type = #{excel_batch_excel_type}
+		</select>
+	    <!-- 查课程表 -->
+	    <select id="getCourseListForLook" parameterType="String" resultType="Hb69">
+	    	select 
+	    		chb069,
+	    		chb158,
+	    		to_char(chb160,'yyyy-MM-dd') chb160,
+	    		(select chb063 from hb64 where chb064 = a.chb064) chb063,
+	    		chb167,
+	    		chb186,
+	    		aac003,
+	    		aac002,
+	    		chb109,
+	    		chb162
+		    from
+		    	hb69 a
+		    where
+		    	chb068 = (select chb068 from hb68 where chb100 = #{chb100})
+		    and 
+		    	aae100 = '1'
+			order by chb160
+	    </select>
+    <!-- 删除学员(共两步) -->
+    <!-- 删除培训学员(第一步) -->
+	    <delete id="delHc60" parameterType="java.lang.String">
+	    	delete from 
+	    		hc60 
+	    	where 
+	    		aae100 = '1'
+	    	and
+	    		chc001 = #{chc001}
+	    </delete>
+    <!-- 更新hc61表学员库学员状态(第二步) -->
+	    <update id="updateHc61ById" parameterType="java.lang.String">
+	    	update 
+	    		hc61 
+	    	set 
+	    		isselected = '0' 
+	    	where 
+	    		isselected = '1'
+	    	and
+	    		chc111 = (select chc111 from hc60 where chc001 = #{chc001})
+	    </update>
+	<!-- 新增时更新hc61表学员库学员状态 -->
+    <update id="updateHc61" parameterType="Student">
+    	update 
+    		hc61 
+    	set 
+    		isselected = '1' 
+    	where 
+    		isselected = '0'
+    	and	chc111 in
+    	<foreach item="item" collection="chc111s" open="(" separator="," close=")">
+           	 #{item}
+        </foreach>
+    </update>
+    <!-- 导入课程表 -->
+    <insert id="insertExcelTempData" parameterType="Hb69Temp">
+		insert into hb69_temp(
+	        chb069,<!-- 主键 -->
+			acc117,<!-- 导入批次号 -->
+			chb160,<!-- 上课时间 -->
+			chb158,<!-- 课别(上课内容) -->
+			chb109,<!-- 课时 -->
+			chb167,<!-- 上课开始时间 -->
+    		chb186,<!-- 上课结束时间 -->
+			chb063,<!-- 上课地点(教室名称) -->
+			aac003,<!-- 培训教师 -->
+			aac002,<!-- 培训教师身份证号 -->
+			chb162,<!-- 教材名称及出版社单位 -->
+			chb366,<!-- 校验标志代码 -->
+			chc066,<!-- 模板顺序 -->
+			chb068 
+		)
+		values (
+		    #{chb069,jdbcType=VARCHAR},
+			#{acc117,jdbcType=VARCHAR},
+			#{chb160,jdbcType=VARCHAR},
+			#{chb158,jdbcType=VARCHAR},
+			#{chb109,jdbcType=VARCHAR},
+			#{chb167,jdbcType=VARCHAR},
+			#{chb186,jdbcType=VARCHAR},
+			#{chb063,jdbcType=VARCHAR},
+			#{aac003,jdbcType=VARCHAR},
+			#{aac002,jdbcType=VARCHAR},
+			#{chb162,jdbcType=VARCHAR},
+			'0',
+			#{chc066,jdbcType=NUMERIC},
+			#{chb068,jdbcType=NUMERIC}
+		)
+	</insert>
+	<!-- 课程表导入：校验临时表数据 -->
+	<select  id="executeProc" statementType="CALLABLE" parameterType="SysExcelBatch" timeout="3600">
+	    {call pkg_hb69_excel_data_imp.dealWith_hb69_temp_imp_update(
+	    #{excel_batch_number,mode=IN,jdbcType=INTEGER},
+	    #{excel_batch_baseinfoid,mode=IN,jdbcType=VARCHAR},
+	    #{excel_batch_assistid,mode=IN,jdbcType=VARCHAR},
+	    #{excel_batch_rt_code,mode=OUT,jdbcType=VARCHAR},
+	    #{excel_batch_rt_msg,mode=OUT,jdbcType=VARCHAR}
+	    )}
+	</select>
+	<!-- 导入人员列表查询 -->
+	 <select id="getTempCourseList" parameterType="Hb69Temp" resultType="Hb69Temp">
+	   select 
+    		chb069,
+    		chb158,
+    		chb160,
+    		chb063,
+    		chb167,
+    		chb186,
+    		aac003,
+    		aac002,
+    		chb109,
+    		chb162,
+    		chb366,
+    		aae013
+	    from
+	    	hb69_temp a
+	    where
+	    	1=1
+	    	<if test="acc117!=null">
+		       and acc117=#{acc117}
+		    </if>
+	    order by chc066
+	 </select>
+	 <!-- 根据chb100获取chb068  -->
+	 <select id="getChb068" parameterType="String" resultType="String">
+	   select 
+    		chb068
+	    from
+	    	hb68
+	    where
+	    	chb100 = #{chb100}
+	 </select>
+	 <!-- 清空69表中当前班级的课程表 -->
+	 <delete id="delHb69" parameterType="java.lang.String">
+	    	delete from 
+	    		hb69 
+	    	where 
+	    		chb068 =(select chb068 from hb68 where chb100 = #{chb100})
+	    </delete>
+	 <!-- 保存课程表至hb69 -->
+    <insert id="insertHb69" parameterType="Hb69Temp">
+        <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chb069">
+            select sys_guid() from dual
+        </selectKey>
+        insert all into hb69(
+        	chb069,
+        	chb158,
+        	chb109,
+        	chb160,
+        	chb167,
+        	chb186,
+        	aac002,
+        	aac003,
+        	aae013,
+        	chb068,
+        	chb064,
+        	chb162,
+        	aae100,
+        	eae052
+        )
+        values(
+        	#{chb069},
+			chb158,
+			chb109,
+        	to_date(chb160,'yyyy-MM-dd'),
+        	chb167,
+        	chb186,
+        	aac002,
+        	aac003,
+        	aae013,
+        	(select chb068 from hb68 where chb100 =#{chb100}),
+        	(select chb064 from hb64 where chb063 = (select chb063 from hb69_temp where 
+        		chb069 = #{chb069_temp} and chb366 = '1') and chb060 in (select chb060
+        		 	from hb63 where aab001 = #{baseinfoid})),
+        	chb162,
+        	'1',
+        	'1'
+           ) 
+           select * 
+           from hb69_temp
+           where chb069 =#{chb069_temp}
+           and chb366 = '1'
+    </insert>
+     <!-- 删除课程缓存表 -->
+    <delete id="delHb69Temp" parameterType="Hb69Temp">
+	    delete from
+	     	hb69_temp
+	    where chb068 = (select chb068 from hb68 where chb100 = #{chb100})
+    </delete>
+    <!-- 插入hb69Temp数据 -->
+     <insert id="insertHb69Temp" parameterType="Hb69Temp">
+        <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chb069">
+            select sys_guid() from dual
+        </selectKey>
+        insert into hb69_temp(
+        	chb069,
+        	chb158,
+        	chb109,
+        	chb160,
+        	aac002,
+        	aac003,
+        	chb068,
+        	chb063,
+        	chb167,
+        	chb366,
+        	chb186,
+        	chb162,
+        	chc066
+        )
+        values(
+        	#{chb069},
+        	#{chb158},
+        	#{chb109},
+        	#{chb160},
+        	#{aac002},
+        	#{aac003},
+        	(select chb068 from hb68 where chb100 = #{chb100}),
+        	#{chb063},
+        	#{chb167},
+        	'1',
+        	#{chb186},
+        	#{chb162},
+        	#{chc066}
+           ) 
+    </insert>
+     <!-- 手动录入保存课程表至hb69 -->
+    <insert id="insertHb69Input" parameterType="Hb69Temp">
+        <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chb069">
+            select sys_guid() from dual
+        </selectKey>
+        insert all into hb69(
+        	chb069,
+        	chb158,
+        	chb109,
+        	chb160,
+        	chb167,
+        	chb186,
+        	aac002,
+        	aac003,
+        	aae013,
+        	chb068,
+        	chb064,
+        	chb162,
+        	aae100,
+        	eae052
+        )
+        values(
+        	#{chb069},
+			chb158,
+			chb109,
+        	to_date(chb160,'yyyy-MM-dd'),
+        	chb167,
+        	chb186,
+        	aac002,
+        	aac003,
+        	aae013,
+        	#{chb068},
+        	(select chb064 from hb64 where chb063 = (select chb063 from hb69_temp where 
+        		chb069 = #{chb069_temp} and chb366 = '1') and chb060 in (select chb060
+        		 	from hb63 where aab001 = #{baseinfoid})),
+        	chb162,
+        	'1',
+        	'1'
+           ) 
+           select * 
+           from hb69_temp
+           where chb069 =#{chb069_temp}
+           and chb366 = '1'
+    </insert>
+    <!-- 手动录入保存课程表至hb69 -->
+    <insert id="insertHb69InputForChange" parameterType="Hb69Temp">
+        <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chb069">
+            select sys_guid() from dual
+        </selectKey>
+        insert all into hb69(
+        	chb069,
+        	chb158,
+        	chb109,
+        	chb160,
+        	chb167,
+        	chb186,
+        	aac002,
+        	aac003,
+        	aae013,
+        	chb068,
+        	chb064,
+        	chb162,
+        	aae100,
+        	eae052
+        )
+        values(
+        	#{chb069},
+			chb158,
+			chb109,
+        	to_date(chb160,'yyyy-MM-dd'),
+        	chb167,
+        	chb186,
+        	aac002,
+        	aac003,
+        	aae013,
+        	#{chb068},
+        	(select chb064 from hb64 where chb063 = (select chb063 from hb69_temp where 
+        		chb069 = #{chb069_temp} and chb366 = '1') and chb060 in (select chb060
+        		 	from hb63 where aab001 = #{baseinfoid})),
+        	chb162,
+        	'1',
+        	'0'
+           ) 
+           select * 
+           from hb69_temp
+           where chb069 =#{chb069_temp}
+           and chb366 = '1'
+    </insert>
+	<select id="getHb69tempList" parameterType="Hb69Temp" resultType="Hb69Temp">
+		select chb069 chb069_temp,chb068
+		from hb69_temp
+		where chb068 = (select chb068 from hb68 where chb100 =#{chb100})
+	</select>
+	<select id="findHb69" parameterType="String" resultType="String">
+		select count(1)
+		from hb69
+		where aae100 = '0'
+		and chb068 = (select chb068 from hb68 where chb100 = #{chb100})
+	</select>
+	<update id="changeToNoEffect" parameterType="String">
+    	update 
+    		hb69
+    	set 
+    		aae100 = '0' 
+    	where 
+    		chb068 = (select chb068 from hb68 where chb100 = #{chb100})
+    </update>
+    <delete id="delEffectHb69" parameterType="Hb68">
+	    delete from 
+	    	hb69
+	    where aae100 = '1'
+	    and chb068 = (select chb068 from hb68 where chb100 = #{chb100})
+    </delete>
+    <!-- 获取机构培训资质 -->
+	  <select id="getAca111List" parameterType="CodeValue" resultType="CodeValue">
+	  	select 
+          code_name||' '||(select code_name from code_value where code_type = 'CHB210' and code_value = b.chb210) code_name,
+          (select aca013 from ca13 where aca111 = b.aca111 and chb210 = b.chb210) code_value,code_type  
+      	from ad01 t,hb62 b,code_value c
+     	where t.aab001 = #{id}
+     	and t.aab001 = b.aab001
+        and b.aca111 = c.code_seq
+        and c.code_type = 'ACA109'
+        and b.aae100='1'
+	  </select>
+</mapper>

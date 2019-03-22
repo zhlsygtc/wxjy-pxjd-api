@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	">
+	<!-- 连接池  -->
+	<bean id="pooledConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory" destroy-method="stop">
+		<property name="connectionFactory">
+			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
+				<property name="brokerURL" value="${activemq.brokerURL}" />
+			</bean>
+		</property>
+	</bean>
+	<!-- 连接工厂 -->
+	<bean id="activeMQConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL" value="${activemq.brokerURL}" />
+	</bean>
+	
+	<!-- queue -->
+	<!-- 配置消息目标 queue -->
+	<bean id="queuedestination" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg index="0" value="${activemq.destination.queue.loginfo}" />
+	</bean>
+	
+
+	<!-- 消息模板 queue  -->
+	<bean id="jmsQueueTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="activeMQConnectionFactory" />
+		<property name="defaultDestination" ref="queuedestination" />
+		<property name="messageConverter">
+			<bean class="org.springframework.jms.support.converter.SimpleMessageConverter" />
+		</property>
+	</bean>
+	
+	<!-- 配置消息队列监听者（Queue） -->
+   <!--  <bean id="jmsQueueMessageListener" class="com.insigma.mvc.serviceimp.common.jms.listener.queue.JmsQueueMessageListener" />
+     -->
+    
+    <!-- 显示注入消息监听容器（Queue），配置连接工厂，监听的目标是queuedestination，监听器是上面定义的监听器 -->
+    <!-- <bean id="queueListenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="activeMQConnectionFactory" />
+        <property name="destination" ref="queuedestination" />
+        <property name="messageListener" ref="jmsQueueMessageListener" />
+    </bean> -->
+    
+   
+    <!--短信及邮件消息服务配置开始 -->
+    
+    <!-- queue -->
+	<!-- 配置消息目标 queue -->
+	<bean id="queueSmsEmaildestination" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg index="0" value="${activemq.destination.queue.smsemail}" />
+	</bean>
+	
+	<!-- 消息模板 queue  -->
+	<bean id="jmsSmsEmailQueueTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="activeMQConnectionFactory" />
+		<property name="defaultDestination" ref="queueSmsEmaildestination" />
+		<property name="messageConverter">
+			<bean class="org.springframework.jms.support.converter.SimpleMessageConverter" />
+		</property>
+	</bean>
+	
+	<!--短信及邮件消息服务配置结束 -->
+</beans>

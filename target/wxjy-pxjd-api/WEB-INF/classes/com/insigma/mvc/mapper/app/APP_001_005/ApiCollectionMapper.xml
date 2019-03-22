@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.app.APP_001_005.ApiCollectionMapper">
+		 
+	<!-- 获取培训收藏信息列表 -->
+	<select id="getCollectionList"  resultType="Hb65" parameterType="Hb65">
+		 select 
+		       (select #{fore}||m.file_rel_path from s_file_record m,s_bus_file_record n,ad01 q where m.file_uuid=n.file_uuid and n.bus_uuid=q.bus_uuid and q.aab001 = a.aab001) photo_url, 
+		       a.chb130,
+	           c.name aab004,
+	           a.chb055,
+	           d.chc111,
+	           (select code_name from code_value where code_type = 'ACA11A' and code_value = a.aca11a) aca11a_s,
+	           (select code_name from code_value where code_type = 'ACA109' and code_value = a.aca111) aca111_s,
+	           a.chb104,
+	           a.chb106,
+	           (SELECT count(1) from hb59 WHERE chb055= a.chb055 and aae100 = '1' and eae052 != '9') total,
+	           (select code_name from code_value where code_type = 'CHB104' and code_value = a.chb104) chb104_name,
+	           to_char(a.chb107,'yyyy.MM.dd') chb107,
+	           to_char(a.chb108,'MM.dd') chb108,
+	           (case when d.aae100 = '1' then '已报名' else '未报名' end) status,
+	           (case when d.aae100 = '1' then '1' else '0' end) flag
+	        from hb65 a,hb56 b,smt_group c,(select * from hb59 where chc111 = #{chc111}) d 
+	       where 
+	             b.userid = #{userid}
+	         and
+	             a.aab001 = c.groupid
+	         and
+	             b.chb055 = a.chb055
+	         and 
+	             b.aae100 = '1'
+	         and 
+	             a.aae100 = '1'
+	         and 
+	             a.chb055 = d.chb055(+)
+	        <if test="param!=null and param != ''">     
+	         and 
+	            ( c.name like '%'||#{param}||'%' or (select code_name from code_value where code_type = 'ACA109' and code_value = a.aca111) like '%'||#{param}||'%' )   
+	        </if>       
+	       order by a.chb107 desc
+     
+	</select>
+	
+	<!-- 收藏计划详情界面 -->
+	<select id="getPlanInfo"  resultType="Hb65" parameterType="Hb65">
+	  select  
+           a.chb130,
+           (select name from smt_group where groupid = c.aab001) aab004,
+           (select linkman from smt_group where groupid = c.aab001) linkman,
+           c.aae005 tel,
+           (select address from smt_group where groupid = c.aab001) address,
+           a.chb055,
+           a.chb106,
+           a.chb105,
+           a.aae004,
+           a.acb502,
+           (select #{fore}||m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=c.bus_uuid) photo_url,
+           c.aab001,
+           a.gps,
+           a.gps_lon,
+           a.gps_lat,
+           (select code_name from code_value where code_type = 'ACA11A' and code_value = a.aca11a) aca11a_s,
+           (select code_name from code_value where code_type = 'ACA109' and code_value = a.aca111) aca111_s,
+           (select code_name from code_value where code_type = 'CHB104' and code_value = a.chb104) chb104_name,
+           to_char(a.chb107,'yyyy/MM/dd') chb107,
+           to_char(a.chb108,'yyyy/MM/dd') chb108
+        from hb65 a,ad01 c
+       where 
+             a.aab001 = c.aab001
+         and
+             a.chb055 = #{chb055}
+         and 
+             c.aae100 = '1'
+         and 
+             a.aae100 = '1'
+	</select>	  
+	
+	<!-- 收藏计划 -->
+	<insert id="doCollect" parameterType="Hb65" >
+		 insert into hb56 (
+		    chb056,
+            userid,
+			chb055,
+			ecc064,
+			aae100
+		  )
+		   values (
+		    sys_guid(),
+		    #{userid},
+		    #{chb055},
+		    sysdate,
+		    '1'
+		   )
+	</insert>	  
+		  
+	<!-- 取消收藏 -->
+	<delete id="deleteCollect" parameterType="Hb65" >
+		 delete from hb56 where userid=#{userid} and chb055=#{chb055}
+	</delete>
+		  
+</mapper>

@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.train.PXYW_001_014.ApiSubsidyMapper">
+    <select id="getHb67List" parameterType="Hb67" resultType="Hb67">
+		select 
+		  a.chb067,
+		  to_char(a.chb107,'yyyy-MM-dd') chb107,
+		  to_char(a.chb108,'yyyy-MM-dd') chb108,
+		  chb101,
+		  a.aab001,
+		  (select code_name from code_value where code_type='CHB103' and code_value = chb103) chb103,
+		  (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = a.aca111) aca111,
+		  chb105,
+		  chb106,
+		  aae013,
+		  aae036,
+		  chb502,
+		  chb050,
+		  (case when b.chb502 is null then '未生成' else (select code_name from code_value where code_type='CHB502' and code_value = chb502) end) chb502_s
+		from 
+		  hb67 a,(select * from hb50 where aae100 = '1' ) b
+		where 
+		  a.aae100 = '1' 
+		  and a.aab001 = #{aab001}
+		  and a.chb528 = '1'
+		  and a.chb188 in ('4','5')
+		  and a.chb067 = b.chb067(+)
+		  <if test="aca111!=null">
+            and aca111 = #{aca111}
+	      </if>
+	      <if test="chb103!=null">
+	        and chb103 = #{chb103}
+	      </if>
+	      <if test="chb107!=null">
+	        and to_char(chb107,'yyyy-MM-dd') <![CDATA[>=]]> #{chb107}
+	      </if>
+	      <if test="chb108!=null">
+	       	and to_char(chb108,'yyyy-MM-dd') <![CDATA[<=]]> #{chb108}
+	      </if>
+	      <if test="chb101!=null">
+        	and chb101 like '%'||#{chb101}||'%'
+          </if>
+    </select>
+    
+    <!-- 生成补贴申请表 -->
+    <insert id="addHb50" parameterType="Hb50" >
+        <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chb050">
+            select sys_guid() from dual
+        </selectKey>
+        insert all into hb50(
+        	chb050,
+        	chb067,
+        	aae002,
+        	chb326,
+        	chb502,
+        	aae100,
+        	chb107,
+        	chb108,
+        	chb567,
+        	aab001,
+        	aca111,
+        	chb567,
+			che320
+        )
+        values(
+        	#{chb050},
+        	#{chb067},
+        	to_char(sysdate,'yyyyMM'),
+        	'0',
+        	'0',
+        	'1',
+        	chb107,
+			chb108,
+			'0',
+			#{baseinfoid},
+			aca111,
+			0,
+			#{userid}
+           ) 
+           select * 
+           from hb67
+           where chb067 =#{chb067}
+    </insert>
+    
+    <!-- 生成学员补贴信息表 -->
+    <insert id="addHc50" parameterType="Hb50" >
+        insert all into hc50(
+        	chc050,
+        	chb050,
+        	aac003,
+        	aac002,
+        	aac004,
+        	aac006,
+        	aae005,
+        	aac026,
+        	chc023,
+        	aca131,
+        	aca138,
+        	aca134,
+        	aca135,
+        	chc031,
+        	chc001,
+        	aae100,
+        	aab026
+        )
+        values(
+        	sys_guid(),
+        	#{chb050},
+        	aac003,
+        	aac002,
+        	aac004,
+        	aac006,
+        	aae005,
+        	aac026,
+        	chc023,
+        	aca131,
+        	aca138,
+        	aca134,
+        	aca135,
+			chc031,
+			chc001,
+			'1',
+			aab026
+           ) 
+           select t.*,(case when c.chc008 = '11' or c.chc008 = '12' or c.chc030 is not null then '1' else '0' end) chc031,d.chc023, f.aca131,
+           (case when c.chc008 = '11' or c.chc008 = '12' or c.chc030 is not null then 0 else f.aca131 end ) aca138,
+           (case when t.chc029 = '1' then f.aca134 when b.chc018 = '1' then f.aca134*0.8 else 0 end) aca134,
+           (case when c.chc002 is not null then f.aca135 else 0 end) aca135,c.aab026
+           from hc60 t ,hc66 b ,hc61 c,hc67 d,hb68 e,ca13 f
+           where 
+           t.aae100 = '1'  and t.eae052 = '1'
+           and 
+           b.aae100 = '1'
+           and
+           t.chc001 = b.chc001 
+           and
+           b.chc018 = '1'
+           and
+           t.chc111 = c.chc111
+           and 
+           t.chc001 = d.chc001(+)
+           and
+           t.chb068 = e.chb068
+           and
+           e.aca013 = f.aca013
+           and
+           e.chb068 in (select chb068 from hb66 where chb067 = #{chb067})
+    </insert>
+    
+    <!-- 查询班期信息 -->
+    <select id="getHb67ById" parameterType="java.lang.String" resultType="Hb67">
+		select 
+		  to_char(chb107,'yyyy-MM-dd') chb107,
+		  to_char(chb108,'yyyy-MM-dd') chb108,
+		  chb101,
+		  (select code_name from code_value where code_type='CHB103' and code_value = chb103) chb103,
+		  (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = aca111) aca111,
+		  chb105,
+		  chb106,
+		  chb067
+		from 
+		  hb67
+		where 
+		  chb067 = #{chb067}
+    </select>
+    
+    <!-- 查询合并班级中学员列表 -->
+    <select id="getHc60StuList" parameterType="Hc60" resultType="Hc60">
+    	select 
+    	  chc001,
+    	  (select chb100 from hb68 where chb068 = t.chb068) chb100,
+		  aac003,
+		  aac002,
+		  (select code_name from code_value where code_type='AAC004' and code_value = aac004) aac004,
+		  to_char(floor(months_between(SYSDATE, aac006) / 12)) a_aac006,
+		  (select code_name from code_value where code_type='CHC002' and code_value = chc002) chc002,
+		  (select code_name from code_value where code_type='AAC011' and code_value = aac011) aac011,
+		  chc003,
+		  aae005,
+		  aac026,
+		  ecc064
+		from 
+		  hc60 t
+		where 
+		  aae100 = '1' and eae052 = '1'
+		 and
+		  chb068 in (select chb068 from hb66 where chb067=#{chb067})
+		order by t.chc066
+    </select>
+    
+    <!-- 查询班期下学员补贴列表 -->
+    <select id="subsidyList" parameterType="Student" resultType="Student">
+    	select 
+    	  a.chc050,
+    	  a.chc001,
+		  a.aac003,
+		  a.aac002,
+		  (select code_name from code_value where code_type='AAC004' and code_value = a.aac004) aac004,
+		  to_char(a.aac006,'yyyy&quot;年&quot;MM&quot;月&quot;') aac006_string,
+		  (b.chb108 - b.chb107) || '天' planTime,
+		  a.aae005,
+		  a.aac026,
+		  a.aca131,
+		  a.aca138,
+		  a.aca135,
+		  a.aca134,
+      	  decode(a.chc031,'0',a.aca134,0) aca137,
+      	  (a.aca134 + a.aca135) subsidy,
+          (decode(a.chc031,'0',a.aca134,0)+a.aca135) subsidy1,
+          a.chc023,
+          a.aab026
+		from 
+		  hc60 t,hc50 a , hb68 b
+		where 
+		  a.aae100 = '1'
+		 and 
+		  t.aae100 = '1' and t.eae052 = '1'
+		 and 
+		  a.chb050 = #{chb050}
+		 and
+		  a.chc001 = t.chc001
+		 and 
+		  t.chb068 = b.chb068 
+		 <if test="flag!=null">
+            and a.chc031 = #{flag}
+	      </if>
+		order by t.chc066
+    </select>
+    
+    <!-- 删除学员补贴信息 -->
+	<update id="delete" parameterType="Student">
+	    update hc50 
+	       set aae100 = '0'
+	    where chc050 = #{chc050,jdbcType=VARCHAR}
+	</update>
+    
+    <!-- 查询学员补写信息  -->
+    <select id="getHc50ById" parameterType="Student" resultType="Student">
+    	select 
+    	  chc050,
+    	  chc001,
+		  aac003,
+		  aac002,
+		  chc031,
+		  aca131,
+		  aca134,
+		  aca135,
+		  aca138,
+		  aae005,
+		  aac026,
+		  aab026
+		from 
+		  hc50 t
+		where 
+		  t.aae100 = '1'
+		 and
+		  t.chc050 = #{chc050}
+    </select>
+    
+   	<!-- 删除现有学员补贴信息表 -->
+	<delete id="deleteHc50" parameterType="Hb50">
+	    delete from hc50
+	    where chb050 = #{chb050,jdbcType=VARCHAR}
+	</delete>
+    
+    <update id="update" parameterType="Student">
+    	update hc50
+    	   set aca131 = #{aca131},
+    		   aca134 = #{aca134},
+    		   aca135 = #{aca135},
+    		   aca138 = #{aca138},
+    		   chc031 = #{chc031}
+    	 where chc050 = #{chc050}
+    </update>
+    
+    <!-- 删除现有补贴申请表 -->
+	<delete id="deleteHb50" parameterType="Hb50">
+	    delete from hb50
+	    where chb050 = #{chb050,jdbcType=VARCHAR}
+	</delete>
+    
+    <!-- 提交班期补贴信息 -->
+	<update id="submit" parameterType="Hb67">
+		update hb50
+		   set chb502 = '1',
+		   	   chb567 = '0',
+		   	   chb326 = '1',
+		       chb569 = '',
+		       che320 = #{baseinfoid},
+		       chb501 = sysdate
+		 where chb050 = #{chb050,jdbcType=VARCHAR}
+	</update>
+    
+     <!-- 根据补贴内码获取补贴信息 -->
+	 <select id="getSubsidyById" parameterType="Hb50Dto" resultType="Hb50Dto">
+	 select t.*,decode(money,0,'0.00',(to_char(money,'fm99999999999999.00'))) || ' 元' moneyLow, money_to_chinese(money) moneyUpper
+		from (select c.name,c.principal,decode(c.linkman,'',c.principal,c.linkman) linkman,aab015,
+		          (to_char(a.chb501,'yyyy')||'年'||to_char(a.chb501,'MM')||'月'||to_char(a.chb501,'dd')||'日') chb501，
+		          tel,d.aab024,d.aab026,b.chb106 || ' 人' chb106,
+		          (select sum(decode(aca135,null,0,aca135)+decode(aca134,null,0,aca134)+decode(aca138,null,0,aca138)) from hc50 where chb050 = a.chb050) money,
+		          ((to_char(a.chb107,'yyyy')||'年'||to_char(a.chb107,'MM')||'月'||to_char(a.chb107,'dd'))||'日'||'-'||(to_char(a.chb108,'yyyy')||'年'||to_char(a.chb108,'MM')||'月'||to_char(a.chb108,'dd')||'日')) chb107,
+		          (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102 = a.aca111) aca111,
+		          (select aca211 from ca15 where aca111 = a.aca111) aca211,
+		          chb101
+		        from hb50 a,hb67 b,smt_group c,ad01 d
+		      where a.aab001 = c.groupid
+		      and a.aab001 = d.aab001
+		      and b.chb067 = a.chb067 
+		      and a.chb050 = #{chb050}) t
+      </select>
+      
+       <!-- 导出培训补贴花名册 -->
+    <select id="getexportStuBT" parameterType="Student" resultType="Student">
+    	select m.*,rownum num from (
+	    	select 
+			  a.aac003,
+			  a.aac002,
+			  (select code_name from code_value where code_type='AAC004' and code_value = a.aac004) aac004,
+			  to_char(a.aac006,'yyyyMMdd') aac006_string,
+			  (b.chb108 - b.chb107) || '天' planTime,
+			  a.aac026,
+			  a.aca131,
+			  a.aca138,
+	          a.chc023,
+	          a.aab026
+			from 
+			  hc60 t,hc50 a , hb68 b
+			where 
+			  a.aae100 = '1'
+			 and 
+			  t.aae100 = '1' and t.eae052 = '1'
+			 and 
+			  a.chb050 = #{chb050}
+			 and
+			  a.chc001 = t.chc001
+			 and 
+			  t.chb068 = b.chb068 
+			 order by t.chc066) m
+    </select>
+      
+</mapper>

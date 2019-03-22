@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.train.PXYW_001_012.ApiGraduationMapper">
+    <select id="getHb67List" parameterType="Hb67" resultType="Hb67">
+		select 
+		  chb067,
+		  to_char(chb107,'yyyy-MM-dd') chb107,
+		  to_char(chb108,'yyyy-MM-dd') chb108,
+		  chb101,
+		  aab001,
+		  (select code_name from code_value where code_type='CHB103' and code_value = chb103) chb103,
+		  (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = aca111) aca111,
+		  chb105,
+		  chb106,
+		  aae013,
+		  aae036,
+		  (select code_name from code_value where code_type='CHB528' and code_value = chb528) chb528
+		from 
+		  hb67
+		where 
+		  aae100 = '1'  and
+		  aab001 = #{aab001}
+		  <if test="aca111!=null">
+            and aca111 = #{aca111}
+	      </if>
+	      <if test="chb103!=null">
+	        and chb103 = #{chb103}
+	      </if>
+	      <if test="chb107!=null">
+	        and to_char(chb107,'yyyy-MM-dd') <![CDATA[>=]]> #{chb107}
+	      </if>
+	      <if test="chb108!=null">
+	       	and to_char(chb108,'yyyy-MM-dd') <![CDATA[<=]]> #{chb108}
+	      </if>
+	      <if test="chb101!=null">
+        	and chb101 like '%'||#{chb101}||'%'
+          </if>
+    </select>
+    <select id="getHb68List" parameterType="Hb68" resultType="Hb68">
+		select
+	        chb100,
+	        a.chb068,
+	        aae001,
+	        chb315,
+	        (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102=a.aca111) aca111,
+	        (select code_name from code_value where code_type = 'CHB103' and code_value=a.chb103) chb103,
+	        a.chb106,
+	        to_char(a.chb107, 'yyyy-MM-dd') chb107,
+	        to_char(a.chb108, 'yyyy-MM-dd') chb108,
+	        (select code_name from code_value where code_type = 'CHB111' and code_value=a.chb111) chb111,
+	        c.chb101,
+	        a.chb527
+	    from
+	        HB68 a full join 
+	        HB66 b on 
+	        a.chb068 = b.chb068
+	        full join 
+	        hb67 c on
+	        b.chb067 = c.chb067
+	    where
+            a.aae100 = '1' and
+            a.chb527 = '0' and
+            a.chb111 = '06' and
+	        a.aab001 = #{aab001}
+          <if test="chb100!=null">
+            and a.chb100 like '%'||#{chb100}||'%'
+          </if>
+          <if test="aca111!=null">
+            and a.aca111 = #{aca111}
+          </if>
+          <if test="chb103!=null">
+        	and a.chb103 = #{chb103}
+          </if>
+          <if test="chb107!=null">
+        	and to_char(a.chb107,'yyyy-MM-dd') <![CDATA[>=]]> #{chb107}
+          </if>
+          <if test="chb108!=null">
+        	and to_char(a.chb108,'yyyy-MM-dd') <![CDATA[<=]]> #{chb108}
+          </if>
+          <if test="chb111!=null">
+        	and a.chb111 = #{chb111}
+          </if>
+          <if test="chb101!=null">
+        	and c.chb101 like '%'||#{chb101}||'%'
+          </if>
+          <if test="chb527!=null">
+        	and a.chb527 = #{chb527}
+          </if>
+   			order by c.chb101,chb100 desc 
+    </select>
+    <select id="getHb67ById" parameterType="Hb67" resultType="Hb67">
+		select 
+		  to_char(chb107,'yyyy-MM-dd') chb107,
+		  to_char(chb108,'yyyy-MM-dd') chb108,
+		  chb101,
+		  (select code_name from code_value where code_type='CHB103' and code_value = chb103) chb103,
+		  (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = aca111) aca111,
+		  chb105,
+		  chb106,
+		  chb067
+		from 
+		  hb67
+		where 
+		  chb067 = #{chb067}
+    </select>
+    <select id="mergeHGStuList" parameterType="Hc60" resultType="Hc60">
+    	select 
+		  a.aac003,
+		  a.aac002,
+		  (select code_name from code_value where code_type='AAC004' and code_value = a.aac004) aac004,
+		  to_char(floor(months_between(SYSDATE, a.aac006) / 12)) a_aac006,
+		  (select code_name from code_value where code_type='CHC002' and code_value = a.chc002) chc002,
+		  (select code_name from code_value where code_type='AAC011' and code_value = a.aac011) aac011,
+		  a.chc003,
+		  a.aae005,
+		  a.aac026,
+		  b.chc014,
+		  b.chc019,
+		  b.chc016,
+		  (select code_name from code_value where code_type='CHC018' and code_value = b.chc018) chc018
+		from
+		  hc60 a,hc66 b
+		where 
+		  a.aae100 = '1' and a.eae052 = '1'
+		and
+		  a.chc001 = b.chc001
+		and
+		  a.chb068 in (select chb068 from hb66 where chb067=#{chb067})
+		and 
+		  a.czc018 = '1'
+		and 
+		  b.chc018 = '1'
+		order by a.chb068,a.chc066
+    </select>
+    <select id="getHb68ByChb068" parameterType="Hb68" resultType="Hb68" >
+    	select 
+		  aca111,
+		  chb103,
+		  aab001,
+		  to_char(chb107,'yyyy-MM-dd') chb107,
+		  to_char(chb108,'yyyy-MM-dd') chb108,
+		  chb105
+		from 
+		  hb68
+		where 
+		  aae100 = '1' and
+		  chb068 = #{chb068}
+    </select>
+    <select id="getChb106All" parameterType="Hb68" resultType="Hb68" >
+    	select 
+		  count(*) chb106
+		from 
+		  hc66
+		where 
+		  aac001 in 
+		  (select 
+		     aac001
+		   from 
+		     hc60
+		   where 
+		     chb068 in
+		     (select 
+		        chb068 
+		      from 
+		        hb68 
+		      where 
+		        chb068 in <foreach item="item" collection="chb068s" open="(" separator="," close=")">
+            				#{item}
+        	              </foreach>) and
+		    czc018 = '1' and eae052 = '1') and
+		  chc018 = '1'
+    </select>
+    <insert id="addMargeClass" parameterType="Hb67">
+     	insert into hb67
+	    <trim prefix="(" suffix=")" suffixOverrides=",">
+	        CHB067,
+	      <if test="chb107 != null">
+	        CHB107,
+	      </if>
+	      <if test="chb108 != null">
+	        CHB108,
+	      </if>
+	      <if test="chb101 != null">
+	        CHB101,
+	      </if>
+	      <if test="aab001 != null">
+	        AAB001,
+	      </if>
+	      <if test="chb103 != null">
+	        CHB103,
+	      </if>
+	      <if test="aca111 != null">
+	        ACA111,
+	      </if>
+	      <if test="chb105 != null">
+	        CHB105,
+	      </if>
+	      <if test="chb106 != null">
+	        CHB106,
+	      </if>
+	      <if test="aae100 != null">
+	        AAE100,
+	      </if>
+	      <if test="aae011 != null">
+	        AAE011,
+	      </if>
+	      <if test="aae013 != null">
+	      	AAE013,
+	      </if>
+	      <if test="aae036 != null">
+	      	AAE036,
+	      </if>
+	      <if test="chb528 != null">
+	      	CHB528,
+	      </if>
+	      <if test="chb316 != null">
+	      	CHB316,
+	      </if>
+	      <if test="chb188 != null">
+	      	CHB188
+	      </if>
+	    </trim>
+	    <trim prefix="values (" suffix=")" suffixOverrides=",">
+	        #{chb067,jdbcType=VARCHAR},
+	      <if test="chb107 != null">
+	        to_date(#{chb107}, 'yyyy-MM-dd'),
+	      </if>
+	      <if test="chb108 != null">
+	        to_date(#{chb108}, 'yyyy-MM-dd'),
+	      </if>
+	      <if test="chb101 != null">
+	        #{chb101,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aab001 != null">
+	        #{aab001,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chb103 != null">
+	        #{chb103,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aca111 != null">
+	        #{aca111,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chb105 != null">
+	        #{chb105,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chb106 != null">
+	        #{chb106,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae100 != null">
+	        #{aae100,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae011 != null">
+	        #{aae011,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae013 != null">
+	        #{aae013,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae036 != null">
+	        #{aae036,jdbcType=DATE},
+	      </if>
+	      <if test="chb528 != null" >
+	      	#{chb528,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chb316 != null" >
+	      	#{chb316,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chb188 != null" >
+	      	#{chb188,jdbcType=VARCHAR}
+	      </if>
+	    </trim>
+	</insert>
+	<update id="updateClass" parameterType="Hb68">
+		update hb68
+		<set>
+			chb527 = '1'
+		</set>
+		where 
+			chb068 in <foreach item="item" collection="chb068s" open="(" separator="," close=")">
+            				#{item}
+        	          </foreach>
+	</update>
+	<insert id="addHb66" parameterType="Hb66" >
+		<selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chb066">
+            select sys_guid() from dual
+        </selectKey>
+		insert into hb66
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+	        CHB066,
+	      <if test="chb067 != null">
+	        CHB067,
+	      </if>
+	      <if test="chb068 != null">
+	        CHB068,
+	      </if>
+	    </trim>
+	    <trim prefix="values (" suffix=")" suffixOverrides=",">
+	        #{chb066,jdbcType=VARCHAR},
+	      <if test="chb067 != null">
+	        #{chb067,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chb068 != null">
+	        #{chb068,jdbcType=VARCHAR},
+	      </if>
+	    </trim>
+	</insert>
+	<update id="updateHb67Chb528" parameterType="Hb67">
+		update hb67
+		<set>
+			chb528 = '1'
+		</set>
+		where 
+			chb067 in <foreach item="item" collection="chb067s" open="(" separator="," close=")">
+            				#{item}
+        	          </foreach>
+	</update>
+	<select id="getHb66ByChb067" parameterType="Hb67" resultType="Hb66">
+	select 
+	  chb066,
+	  chb067,
+	  chb068 
+	from 
+	  hb66 
+	where 
+	  chb067 in <foreach item="item" collection="chb067s" open="(" separator="," close=")">
+            				#{item}
+        	          </foreach>
+	</select>
+	<update id="updateHb68Chb528" parameterType="Hb68">
+		update hb68
+		<set>
+			chb528 = '1'
+		</set>
+		where 
+			chb068 in <foreach item="item" collection="chb068s" open="(" separator="," close=")">
+            				#{item}
+        	          </foreach>
+	</update>
+	
+	<select id="getStuList" parameterType="Student" resultType="HashMap">
+		select  rownum,
+		        chc001,
+		        aac003,
+		        aac002,
+		        aae005,
+		        aca111,
+		        aca11a,
+		        chb107,
+		        chb108,
+		        num,
+		        chc023A,
+		        chc023B,
+		        chc023C,
+		        aab004,
+		        '机构代为申请' status,
+		        <if test="flag!=null">
+				    subsidy,
+			    </if>
+		        aac004,
+		        aac005,
+		        chc002,
+		        chc008,
+		        age,
+		        chc023,
+		        aac026,
+		        cetificate_url
+		  from(
+		      select  
+		          a.chc001,
+		            a.aac003,
+		            a.aac002,
+		            a.aae005,
+		            (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102 = e.aca111) aca111,
+		            (select aaa103 from v_aa10 where aaa100 = 'ACA11A' and aaa102 = e.aca11a) aca11a,
+		            (select aaa103 from v_aa10 where aaa100 = 'AAC004' and aaa102=a.aac004) aac004,
+		            (select aaa103 from v_aa10 where aaa100 = 'AAC005' and aaa102=a.aac005) aac005,
+		            (select aaa103 from v_aa10 where aaa100 = 'CHC002' and aaa102=a.chc002) chc002,
+		            (select aaa103 from v_aa10 where aaa100 = 'AAC009' and aaa102=d.chc008) chc008,
+		            to_char(e.chb107,'yyyy-MM-dd') chb107,
+		            to_char(e.chb108,'yyyy-MM-dd') chb108,
+		            (select sum(chb109) from hb69 where chb068 = e.chb068) num,
+		            <if test="flag!=null">
+				    	decode(substr(e.aca111,1,2),'01',(SELECT ADD721 FROM DD40 WHERE ADD606='100' AND ADD710=e.aca11a),'02',(select ADD721 from dd40 where ADD606 = '100' AND ADD710 = '06'),'0') subsidy,
+				    </if>
+		            decode(length(a.aac002),'18',(to_char(sysdate,'yyyy')-substr(a.aac002,7,4)),(to_char(sysdate,'yyyy')-('19'||substr(a.aac002,7,2)))) age,
+		            decode(b.chc028,'1',b.chc023,'') chc023A,
+		            decode(b.chc028,'2',b.chc023,'') chc023B,
+		            decode(b.chc028,'3',b.chc023,'') chc023C,
+		            (select name from smt_group where groupid = e.aab001) aab004,
+		            b.chc023,
+		            a.aac026,
+		            (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=b.bus_uuid) cetificate_url
+		        from
+		          hc60 a,hc67 b,hc66 c, hc61 d,hb68 e
+		        where
+		          a.aae100 = '1' and a.eae052 = '1'
+		        and 
+		            a.chc111 = d.chc111
+		        and 
+		            a.chc001 = c.chc001
+		        and 
+		            c.chc018 = '1'
+		        and 
+		          a.chc001 = b.chc001(+)
+		        and 
+		          e.chb068 in (select chb068 from hb66 where chb067 = #{chb067})
+		        and
+		          a.chb068 = e.chb068
+		      order by a.chc066
+		      )
+    </select>
+	
+	
+</mapper>

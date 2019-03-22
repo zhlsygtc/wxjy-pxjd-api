@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.monitor.PXJG_001_003.LeaveMapper">
+    <!-- 查询学员信息列表 -->
+    <select id="getInfoList" parameterType="Zc07DTO" resultType="Zc07DTO">
+	select
+	a.chc001,
+	a.chb068,
+	a.aac026,
+	a.aac002,
+	a.aac003,
+	a.aae005,
+	nvl((select code_value
+ 	 from code_value m, ca13 n
+  	where m.par_code_value = n.chb210
+  	  and code_type = 'CZC07R' and n.aca013=b.aca013 and rownum=1),1) ts,
+	(select count(*) from zc07 where chc001=a.chc001 ) cs,
+	(select count(*) from zc07 where chc001=a.chc001 and eae052 in('1','9') )
+	yshcs,
+	(select count(*) from zc07 where chc001=a.chc001 and eae052='0' ) wshcs,
+	a.aae036
+	from hc60 a,hb68 b
+	where a.chb068=b.chb068 and a.eae052 = '1'
+	AND a.aae100 = '1'
+	AND b.aab001 = #{aab001}
+	AND chb108 <![CDATA[>=]]>  sysdate-1
+        <if test="chb100!=null">
+            and b.chb100=#{chb100}
+        </if>
+        <if test="aac003!=null">
+            and a.aac003 like '%'||#{aac003}||'%' 
+        </if>
+        <if test="aac002!=null">
+            and a.aac002 = #{aac002}
+        </if>
+        <if test="chb107!=null">
+        	and to_char(b.chb107,'yyyy-MM-dd') <![CDATA[>=]]> #{chb107}
+        </if>
+        <if test="chb108!=null">
+        	and to_char(b.chb108,'yyyy-MM-dd') <![CDATA[<=]]> #{chb108}
+        </if>
+        <if test="chb057!=null">
+            and b.chb057 = #{chb057}
+        </if>
+   		order by a.chc066
+    </select>
+    
+    <!--查看学员请假信息 -->
+    <select id="getStuList" parameterType="Zc07" resultType="Zc07">
+        select
+                    czc007,
+  					chc001,
+  					aab001,
+ 					chb100,
+ 					aac001,
+ 					aac003,
+ 					aae005,
+  					(SELECT code_name FROM code_value t WHERE t.code_type='EEE351' AND t.code_value = a.edc351) edc351,
+  					edc352,
+  					(select  min(TO_CHAR(chb160,'yyyy-mm-dd')||' '||c.chb167) from zc07_detail b,hb69 c where b.chb069=c.chb069 and a.czc007=b.czc007 and c.aae100 = '1') edc353 ,
+                    (select  max(TO_CHAR(chb160,'yyyy-mm-dd')||' '||c.chb186) from zc07_detail b,hb69 c where b.chb069=c.chb069 and a.czc007=b.czc007 and c.aae100 = '1')  edc354,
+  					aae011,
+                    aae038,
+                    eae052,
+                    aae100,
+                    (select listagg(c.chb158||'('||c.chb167||'-'||c.chb186||')',',') within GROUP (order by c.chb167) from zc07_detail b,hb69 c where b.chb069=c.chb069 and a.czc007=b.czc007 and c.aae100 = '1') chb069s
+        from
+        zc07 a
+        where
+         chc001 = #{chc001,jdbcType=VARCHAR}
+    </select>
+
+    <!-- 删除学员请假信息 -->
+    <delete id="deleteData" parameterType="java.lang.String">
+        delete from zc07
+        where czc007 = #{czc007,jdbcType=VARCHAR}
+    </delete>
+    
+     <!-- 删除学员请假信息 -->
+    <delete id="deleteZc07Det" parameterType="java.lang.String">
+        delete from zc07_detail
+        where czc007 = #{czc007,jdbcType=VARCHAR}
+    </delete>
+
+    <!--查看学员信息 -->
+    <select id="getStuById" parameterType="Hc60" resultType="Hc60">
+	select
+	a.chc001,
+	b.chb100,
+	b.chb068,
+	a.aac003,
+	(select floor(count(1)/5) from hc60 ）chb106,
+	(SELECT count(distinct chc001) FROM zc07 p ,zc07_detail q WHERE p.czc007=q.czc007) qjrs,
+	a.aae005
+	from hc60 a,hb68 b
+	where a.chb068=b.chb068 AND a.eae052 = '1'
+	AND a.aae100 = '1'
+	and a.chc001 = #{chc001,jdbcType=VARCHAR}
+    </select>
+
+    <!-- 保存学员请假信息 -->
+    <insert id="saveData" parameterType="Zc07">
+        <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="czc007">
+            select sys_guid() from dual
+        </selectKey>
+        insert into Zc07(
+            czc007,
+            chc001,
+            aac003,
+            aae005,
+            aab001,
+            chb100,
+            aac001 ,
+            edc351,
+            edc352,
+            edc353,
+            edc354,
+            aae011,
+            aae036,
+            aae038,
+            eae052,
+            aae100
+            )
+            values(
+            #{czc007},
+            #{chc001},
+            #{aac003},
+            #{aae005},
+            #{aab001},
+            #{chb100},
+            #{aac001},
+            #{edc351},
+            #{edc352},
+            to_date(#{edc353}, 'yyyy-MM-dd HH24:mi:ss'),
+            to_date(#{edc354}, 'yyyy-MM-dd HH24:mi:ss'),
+            #{aae011},
+            SYSDATE,
+            SYSDATE,
+            '0',
+            '1'
+            )
+    </insert>
+  
+  
+  <!-- 保存学员请假明细信息 -->
+    <insert id="saveZc07Det" parameterType="Zc07">
+        <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="czc07s">
+            select sys_guid() from dual
+        </selectKey>
+        insert into zc07_detail(
+            czc07s,
+            czc007,
+            chb069
+            )
+            values(
+            #{czc07s},
+            #{czc007},
+            #{chb069}
+            )
+    </insert>
+  
+
+</mapper>

@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.train.PXYW_001_009.ApiCertificateMgMapper">
+	
+	  <!-- 合并班级信息列表查询 -->
+	  <select id="getClasssList" parameterType="Hb67" resultType="Hb67">
+	    select 
+		    chb067,
+		    chb101,
+		    (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102 = t.aca111) aca111,
+        	(select code_name from code_value where code_type = 'CHB103' and code_value = t.chb103) chb103,
+		    to_char(chb107, 'yyyy-MM-dd') chb107,
+        	to_char(chb108, 'yyyy-MM-dd') chb108,
+        	chb106,
+        	chb105,
+        	chb188,
+		    (select aaa103 from v_aa10 where aaa100 = 'CHB188' and aaa102 = t.chb188) chb188_s
+	    from hb67 t
+	    <where> 
+	    	t.aae100 = '1' 
+	      <if test="aab001!=null">
+	        and t.aab001 = #{aab001} 
+	      </if>
+	      <if test="chb101!=null">
+	        and t.chb101 like '%'||#{chb101}||'%' 
+	      </if>
+	      <if test="chb188!=null">
+	        and t.chb188=#{chb188}
+	      </if>
+	      <if test="aca111!=null">
+	        and t.aca111=#{aca111}
+	      </if>
+	      <if test="chb107!=null">
+        	and to_char(chb107,'yyyy-MM-dd') <![CDATA[>=]]> #{chb107}
+	      </if>
+	      <if test="chb108!=null">
+	        and to_char(chb108,'yyyy-MM-dd') <![CDATA[<=]]> #{chb108}
+	      </if>
+	       order by t.chb188,t.chb107 desc
+	    </where> 
+	  </select>
+  
+	  <!-- 查询培训学员信息 -->
+      <select id="getStuList" parameterType="Student" resultType="Student">
+	    	select 
+	    		a.chc001,
+		        a.aac003,
+		        a.aac002,
+		        a.aae005,
+		        (select aaa103 from v_aa10 where aaa100 = 'AAC004' and aaa102 = a.aac004) aac004,
+		        (select aaa103 from v_aa10 where aaa100 = 'CHC002' and aaa102 = a.chc002) chc002,
+		        decode(length(a.aac002),'18',(to_char(sysdate,'yyyy')-substr(a.aac002,7,4)),(to_char(sysdate,'yyyy')-('19'||substr(a.aac002,7,2)))) age,
+		        nvl(b.chc067,sys_guid()) chc067,
+		        b.chc023,
+		        to_char(b.chc024,'yyyy-MM-dd') chc024,
+		        (select aaa103 from v_aa10 where aaa100 = 'CHC028' and aaa102 = b.chc028) chc028,
+		        b.aab004,
+		        a.chc029,
+		        (select aaa103 from v_aa10 where aaa100 = 'CHC029' and aaa102 = a.chc029) chc029_name,
+		        (case when b.bus_uuid is null then '1' else b.bus_uuid end ) bus_uuid,
+		        (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=b.bus_uuid) cetificate_url
+		    from
+		    	hc60 a,hc67 b,hc66 c
+		    where
+		    	a.aae100 = '1' and a.eae052 = '1'
+		    and 
+		        a.chc001 = c.chc001
+		    and 
+		        c.chc018 = '1'
+		    and 
+		    	a.chc001 = b.chc001(+)
+		    and
+		    	a.chb068 in (select chb068 from hb66 where chb067 = #{chb067})
+			order by a.chc066
+     </select>
+     
+     <!-- 查询培训学员信息 （大丰）-->
+      <select id="getStuList_df" parameterType="Student" resultType="Student">
+	    	select 
+	    		a.chc001,
+		        a.aac003,
+		        a.aac002,
+		        a.aae005,
+		        (select aaa103 from v_aa10 where aaa100 = 'AAC004' and aaa102 = a.aac004) aac004,
+		        (select aaa103 from v_aa10 where aaa100 = 'CHC002' and aaa102 = a.chc002) chc002,
+		        decode(length(a.aac002),'18',(to_char(sysdate,'yyyy')-substr(a.aac002,7,4)),(to_char(sysdate,'yyyy')-('19'||substr(a.aac002,7,2)))) age,
+		        nvl(b.chc067,sys_guid()) chc067,
+		        b.chc023,
+		        to_char(b.chc024,'yyyy-MM-dd') chc024,
+		        (select aaa103 from v_aa10 where aaa100 = 'CHC028' and aaa102 = b.chc028) chc028,
+		        (select aaa103 from v_aa10 where aaa100 = 'AAB004S' and aaa102 = b.aab004) aab004,
+		        a.chc029,
+		        (select aaa103 from v_aa10 where aaa100 = 'CHC029' and aaa102 = a.chc029) chc029_name,
+		        (case when b.bus_uuid is null then '1' else b.bus_uuid end ) bus_uuid,
+		        (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=b.bus_uuid) cetificate_url
+		    from
+		    	hc60 a,hc67 b,hc66 c
+		    where
+		    	a.aae100 = '1' and a.eae052 = '1'
+		    and 
+		        a.chc001 = c.chc001
+		    and 
+		        c.chc018 = '1'
+		    and 
+		    	a.chc001 = b.chc001(+)
+		    and
+		    	a.chb068 in (select chb068 from hb66 where chb067 = #{chb067})
+			order by a.chc066
+     </select>
+  
+    <!-- 查询培训学员信息 -->
+      <select id="getHc67" parameterType="Student" resultType="Student">
+	    	select 
+	    		a.chc067,
+		        a.chc001
+		    from
+		    	hc67 a
+		    where
+		    	a.aae100 = '1'
+		    and
+		    	a.chc067 = #{chb067}
+     </select>
+    
+     <!-- 新增学员证书信息 -->
+	<insert id="saveDate" parameterType="Student">
+    	insert into hc67
+	    	<trim prefix="(" suffix=")" suffixOverrides=",">
+	        	chc067,
+	      	<if test="chc001 != null">
+	        	chc001,
+	      	</if>
+	      	<if test="chc023 != null">
+	        	chc023,
+	      	</if>
+	      	<if test="chc024 != null">
+	        	chc024,
+	      	</if>
+	      	<if test="chc028 != null">
+	        	chc028,
+	      	</if>
+	      	<if test="aab004 != null">
+	        	aab004,
+	      	</if>
+	      	<if test="bus_uuid != null">
+	        	bus_uuid,
+	      	</if>
+	        	AAE036,
+	      	<if test="aae100 != null">
+	        	aae100,
+	      	</if>
+	      	<if test="aae011 != null">
+	        	aae011,
+	      	</if>
+    	</trim>
+	    <trim prefix="values (" suffix=")" suffixOverrides=",">
+	        #{chc067,jdbcType=VARCHAR},
+	      	<if test="chc001 != null">
+	        	#{chc001,jdbcType=VARCHAR},
+	      	</if>
+	      	<if test="chc023 != null">
+	        	#{chc023,jdbcType=VARCHAR},
+	      	</if>
+	      	<if test="chc024 != null">
+	        	to_date(#{chc024,jdbcType=VARCHAR},'yyyy-MM-dd'),
+	      	</if>
+	      	<if test="chc028 != null">
+	      	(select code_value from code_value where code_type = 'CHC028' and code_name = #{chc028,jdbcType=VARCHAR}),
+	      	</if>
+	      	<if test="aab004 != null">
+	        	#{aab004,jdbcType=VARCHAR},
+	      	</if>
+	      	<if test="bus_uuid != null">
+	        	#{bus_uuid,jdbcType=VARCHAR},
+	      	</if>
+	      	    sysdate,
+	      	<if test="aae100 != null">
+	        	#{aae100,jdbcType=VARCHAR},
+	      	</if>
+	      	<if test="aae011 != null">
+	        	#{aae011,jdbcType=VARCHAR},
+	      	</if>
+	    </trim>
+  	</insert>
+  
+  	<!-- 更新学员证书信息 -->
+	<update id="update" parameterType="Student">
+  		update hc67
+    	<set>
+	      	<if test="chc023 != null">
+	        	chc023 = #{chc023,jdbcType=VARCHAR},
+	      	</if>
+	      	<if test="chc024 != null">
+	        	chc024 = to_date(#{chc024,jdbcType=VARCHAR},'yyyy-MM-dd'),
+	      	</if>
+	      	<if test="chc028 != null">
+        		chc028 = (select code_value from code_value where code_type = 'CHC028' and code_name = #{chc028}),
+	      	</if>
+	      	<if test="aab004 != null">
+	        	aab004 = #{aab004,jdbcType=VARCHAR},
+	      	</if>
+	      	<if test="bus_uuid != null">
+	       		bus_uuid = #{bus_uuid,jdbcType=VARCHAR},
+	      	</if>
+	      	    aae036 = sysdate,
+	      	<if test="aae100 != null">
+	        	aae100 = #{aae100,jdbcType=VARCHAR},
+	      	</if>
+	      	<if test="aae011 != null">
+	        	aae011 = #{aae011,jdbcType=VARCHAR},
+	      	</if>
+    	</set>
+    	where chc067 = #{chc067,jdbcType=VARCHAR}
+	</update > 
+	
+	<!-- 更新班期证书录入状态 -->
+	<update id="updateState" parameterType="java.lang.String">
+		update hb67 
+		   set chb188 = '2'
+		 where chb067 = #{chb067,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 提交班期证书信息 -->
+	<update id="submit" parameterType="Hb67">
+		update hb67 
+		   set chb188 = '3',
+		       chb189 = ''
+		 where chb067 = #{chb067,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 撤销班期证书信息 -->
+	<update id="undo" parameterType="Hb67">
+		update hb67 
+		   set chb188 = '2'
+		 where chb067 = #{chb067,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 设置学员拿证状态 -->
+	<update id="doSet" parameterType="Student">
+		update hc60 
+		   set chc029 = #{chc029}
+		 where chc001 = #{chc001,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 删除学员证书信息 -->
+  <delete id="deleteCertificate" parameterType="Student">
+    delete from hc67
+    where chc001 = #{chc001,jdbcType=VARCHAR}
+  </delete>
+  
+  	<select id="getHb67ById" parameterType="Hb67" resultType="Hb67">
+		select 
+		  to_char(chb107,'yyyy-MM-dd') chb107,
+		  to_char(chb108,'yyyy-MM-dd') chb108,
+		  chb101,
+		  (select aaa103 from v_aa10 where aaa100='CHB103' and aaa102 = chb103) chb103,
+		  (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = aca111) aca111,
+		  chb105,
+		  chb106,
+		  chb189,
+		  (select code_name
+             from code_value
+	         where code_type = 'ACA111'
+             and code_value = (select par_code_value
+                               from code_value
+                               where code_type = 'ACA111'
+                               and code_value = a.aca111)) aca112,
+	        (select code_name
+          	 from code_value
+        	 where code_type = 'ACA111'
+             and code_value =
+	               (select par_code_value
+                    from code_value
+                    where code_type = 'ACA111'
+                    and code_value = (select par_code_value
+                                      from code_value
+                                      where code_type = 'ACA111'
+                                      and code_value = a.aca111))) aca113,
+		  chb067
+		from 
+		  hb67 a
+		where 
+		  chb067 = #{chb067}
+    </select>
+  
+    <select id="getHb67ById_df" parameterType="Hb67" resultType="Hb67">
+		select 
+		  to_char(chb107,'yyyy-MM-dd') chb107,
+		  to_char(chb108,'yyyy-MM-dd') chb108,
+		  chb101,
+		  (select aaa103 from v_aa10 where aaa100='CHB103' and aaa102 = chb103) chb103,
+		  (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = aca111) aca111,
+		  chb105,
+		  chb106,
+		  chb189,
+		  (select code_name
+	          from code_value
+	         where code_type = 'ACA119'
+	           and code_level = '2'
+	           and code_value = (select par_code_value
+	                               from code_value
+	                              where code_type = 'ACA109'
+	                                and code_value =  a.aca111 and code_level = '3' )) aca113,
+	      (select code_name
+          from code_value
+         where code_type = 'ACA119'
+           and code_level = '1'
+           and code_value =(select par_code_value 
+                                     from code_value
+                                    where code_type = 'ACA119' and code_level = '2'
+                                      and code_value = (
+                                      				 select par_code_value 
+                                      				   from code_value
+                                      				  where code_type = 'ACA109' and code_level = '3' 
+                                      				    and code_value = a.aca111))) aca112,
+		  chb067
+		from 
+		  hb67 a
+		where 
+		  chb067 = #{chb067}
+    </select>
+	
+	<select id="getHb67ById_sx" parameterType="Hb67" resultType="Hb67">
+		select 
+		  to_char(chb107,'yyyy-MM-dd') chb107,
+		  to_char(chb108,'yyyy-MM-dd') chb108,
+		  chb101,
+		  (select aaa103 from v_aa10 where aaa100='CHB103' and aaa102 = chb103) chb103,
+		  (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = aca111) aca111,
+		  chb105,
+		  chb106,
+		  chb189,
+		  (select aca112
+	          from ca11
+	         where grade = '2'
+	           and aca111 = (select aca212
+                               from ca11
+                              where aca111 =  a.aca111 and grade = '3' )) aca113,
+	      (select aca112
+	          from ca11
+	         where grade = '1'
+	           and aca111 =(select aca212 
+                              from ca11
+                             where grade = '2'
+                               and aca111 = (
+                              				 select aca212 
+                              				   from ca11
+                              				  where grade = '3' 
+                              				    and aca111 = a.aca111))) aca112,
+		  chb067
+		from 
+		  hb67 a
+		where 
+		  chb067 = #{chb067}
+    </select>
+	
+</mapper>

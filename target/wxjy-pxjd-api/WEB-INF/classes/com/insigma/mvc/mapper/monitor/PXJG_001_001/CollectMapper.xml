@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.monitor.PXJG_001_001.CollectMapper">
+    <!-- 查询信息列表 -->
+    <select id="getInfoList" parameterType="Hc60DTO" resultType="Hc60DTO">
+     select 
+           a.chc001,
+           a.chc111,
+           a.aac003,
+           a.aac002,
+           a.chc003,
+          (select code_name from code_value where code_type = 'AAC004' and code_value=a.aac004) aac004,
+          (select code_name from code_value where code_type = 'CHC002' and code_value=a.chc002) chc002,
+          decode(length(a.aac002),'18',(to_char(sysdate,'yyyy')-substr(a.aac002,7,4)),(to_char(sysdate,'yyyy')-('19'||substr(a.aac002,7,2)))) age,
+          (select code_name from code_value where code_type = 'AAC011' and code_value=a.aac011) aac011,
+          a.aae005,
+          a.aae006,
+          (select to_char(ecc064,'yyyy-MM-dd') from hc61 where chc111 = a.chc111) ecc064,
+          a.chc066,
+          b.chb100,
+          (select code_name from code_value where code_type = 'ACA111' and code_value=b.aca111) aca111,
+          (select code_name from code_value where code_type = 'CHB103' and code_value=b.chb103) chb103,
+          to_char(b.chb107, 'yyyy-MM-dd') chb107,
+          to_char(b.chb108, 'yyyy-MM-dd') chb108,
+          decode(nvl((select count(1)  from zc01 where aac002= a.aac002), 0),0,'0','1') flag
+      from
+        hc60 a,hb68 b
+      where
+            a.chb068=b.chb068 
+        AND a.aae100 = '1'
+        AND b.aab001 = #{aab001}
+        AND chb108 <![CDATA[>=]]>  sysdate-1
+        <if test="chb100!=null">
+            and b.chb100=#{chb100}
+        </if>
+        <if test="aac003!=null">
+            and a.aac003 like '%'||#{aac003}||'%' 
+        </if>
+        <if test="aac002!=null">
+            and aac002 = #{aac002}
+        </if>
+        <if test="chb107!=null">
+        	and to_char(chb107,'yyyy-MM-dd') <![CDATA[>=]]> #{chb107}
+        </if>
+        <if test="chb108!=null">
+        	and to_char(chb108,'yyyy-MM-dd') <![CDATA[<=]]> #{chb108}
+        </if>
+        <if test="chb057!=null">
+            and b.chb057 = #{chb057}
+        </if>
+   		order by chc066,decode(nvl((select count(1)  from zc01 where aac002= a.aac002), 0),0,'0','1')
+    </select>
+    
+     <!-- 查询信息列表 -->
+    <select id="getTeacherInfoList" parameterType="Hb69DTO" resultType="Hb69DTO">
+     select 
+           distinct a.chb061,
+           a.aac003,
+           a.aac002,
+          (select code_name from code_value where code_type = 'ACA111' and code_value=b.aca111) aca111,
+          a.aae005,
+          b.chb100,
+          to_char(b.chb107, 'yyyy-MM-dd') chb107,
+          to_char(b.chb108, 'yyyy-MM-dd') chb108,
+          decode(nvl((select count(1)  from zc01 where aac002= a.aac002), 0),0,'0','1') flag
+      from
+         hb61 a,hb68 b,hb69 c
+      where
+            b.chb068=c.chb068
+        and b.aab001=a.aab001
+        and c.aac002=a.aac002
+        AND a.aae100 = '1'
+        AND c.aae100 = '1'
+        AND b.aab001 = #{aab001}
+        AND chb108 <![CDATA[>=]]>  sysdate
+        <if test="chb100!=null">
+            and b.chb068=#{chb100}
+        </if>
+        <if test="aac003!=null">
+            and a.aac003 like '%'||#{aac003}||'%' 
+        </if>
+        <if test="aac002!=null">
+            and aac002 = #{aac002}
+        </if>
+        <if test="chb107!=null">
+        	and to_char(chb107,'yyyy-MM-dd') <![CDATA[>=]]> #{chb107}
+        </if>
+        <if test="chb108!=null">
+        	and to_char(chb108,'yyyy-MM-dd') <![CDATA[<=]]> #{chb108}
+        </if>
+        <if test="chb057!=null">
+            and b.chb057 = #{chb057}
+        </if>
+    </select>
+    
+    <!-- 通过主键查询信息中文 -->
+  <select id="getStuById" parameterType="java.lang.String" resultType="Hc60DTO">
+    select a.chc001,
+           a.chc111,
+           a.aac003,
+           a.aac002,
+           (select code_name from code_value where code_type = 'AAC004' and code_value=a.aac004) aac004,
+          (select code_name from code_value where code_type = 'CHC002' and code_value=a.chc002) chc002,
+          decode(length(a.aac002),'18',(to_char(sysdate,'yyyy')-substr(a.aac002,7,4)),(to_char(sysdate,'yyyy')-('19'||substr(a.aac002,7,2)))) age,
+          (select code_name from code_value where code_type = 'AAC011' and code_value=a.aac011) aac011,
+          a.aae005,
+          a.aae006,
+          b.czc001,
+          nvl(b.edc360,'未采集') edc360,
+          nvl(b.edc361,'未采集') edc361,
+          (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=b.edc437) edc437,
+          nvl((select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=b.edc438),
+          (select m.file_rel_path from s_file_record m,s_bus_file_record n,hc61 p where m.file_uuid=n.file_uuid and p.aac002=a.aac002 and n.bus_uuid=p.bus_uuid and rownum=1)) edc438
+    from hc60 a,zc01 b
+    where a.aac002=b.aac002(+) and a.eae052 = '1' and chc001 = #{chc001}
+  </select>
+  
+   <!-- 通过主键查询信息中文 -->
+  <select id="getTeacherById" parameterType="java.lang.String" resultType="Hc60DTO">
+    select 
+           a.aac003,
+           a.aac002,
+           (select code_name from code_value where code_type = 'AAC004' and code_value=a.aac004) aac004,
+          decode(length(a.aac002),'18',(to_char(sysdate,'yyyy')-substr(a.aac002,7,4)),(to_char(sysdate,'yyyy')-('19'||substr(a.aac002,7,2)))) age,
+          (select code_name from code_value where code_type = 'AAC011' and code_value=a.aac011) aac011,
+          a.aae005,
+          a.aae006,
+          b.czc001,
+          nvl(b.edc360,'未采集') edc360,
+          nvl(b.edc361,'未采集') edc361,
+          (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=b.edc437) edc437,
+          (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=b.edc438) edc438
+    from hb61 a,zc01 b
+    where a.aac002=b.aac002(+) and chb061 = #{chb061}
+  </select>
+  
+    <!-- 校验身份证 -->
+  <select id="checkAac002" parameterType="java.lang.String" resultType="Hc60DTO">
+    select aac002,czc001
+    from zc01
+    where aac002 = #{aac002}
+  </select>
+  
+  
+   <!-- 新增信息 -->
+  <insert id="addCollect" parameterType="Hc60DTO">
+     <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="czc001"> 
+            select sys_guid() from dual 
+     </selectKey>
+    insert into ZC01(
+        	czc001,
+  			aac002,
+  			edc360,
+  			edc361,
+  			edc437,
+  			edc438,
+ 			aae011,
+ 			aae036,
+  			aae013
+        )
+        values(
+        	#{czc001},
+			#{aac002},
+			#{edc360},
+			#{edc361},
+			#{edc437},
+			#{edc438},
+			#{aae011},
+			SYSDATE,
+			''
+           )
+    </insert>
+    
+  
+  <!-- 更新信息 -->
+  <update id="updateCollect" parameterType="Hc60DTO">
+    update zc01
+    <set>
+      <if test="edc360 != null">
+        edc360 = #{edc360},
+      </if>
+      <if test="edc361 != null">
+        edc361 = #{edc361},
+      </if>
+      <if test="edc437 != null">
+        edc437 = #{edc437},
+      </if>
+      <if test="edc438 != null">
+        edc438 = #{edc438},
+      </if>  
+      <if test="aae011 != null">
+        AAE011 = #{aae011},
+      </if>
+        aae036 = SYSDATE
+    </set>
+    where czc001 = #{czc001}
+  </update>
+  
+   
+</mapper>

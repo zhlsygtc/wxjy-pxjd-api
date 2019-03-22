@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.app.APP_001_001.ApiCommonMapper">
+		 
+	<!-- 获取个人基本信息 -->
+	<select id="getCe01ByEec001"  resultType="Ce01" parameterType="String">
+		SELECT
+			eec001,
+			eac011,
+			aac001,
+			aac002,
+			aac003,
+			aac024,eec026,to_char(eec027,'yyyy-mm-dd') as eec027_str,
+			(select aaa103 from v_aa10 where aaa100='AAC024' and aaa102=a.aac024) aac024_name,
+			aac004,
+			(select aaa103 from v_aa10 where aaa100='AAC004' and aaa102=a.aac004) aac004_name,
+			aac005,
+			(select aaa103 from v_aa10 where aaa100='AAC005' and aaa102=a.aac005) aac005_name,
+			to_char(a.aac006,'yyyy"年"MM"月"dd"日"') aac006,
+			trunc(MONTHS_BETWEEN(sysdate, a.aac006) / 12) age,
+			aac027,
+			(select aaa103 from v_aa10 where aaa100='AAC027' and aaa102=a.aac027) aac027_name,
+			aac009,
+			(select aaa103 from v_aa10 where aaa100='AAC009' and aaa102=a.aac009) aac009_name,
+			eec357,
+			(select aaa103 from v_aa10 where aaa100='AAB301' and aaa102=a.eec357) eec357_name,
+			(select code_describe from code_value where code_type='AAB301' and code_value=a.eec357) eec357_name_all,
+			aac010,
+			eec358,
+			(select aaa103 from v_aa10 where aaa100='AAB301' and aaa102=a.eec358) eec358_name,
+			(select code_describe from code_value where code_type='AAB301' and code_value=a.eec358) eec358_name_all,
+			eec103,
+			(select aaa103 from v_aa10 where aaa100='EEC103' and aaa102=a.eec103) eec103_name,
+			aac011,
+			(select aaa103 from v_aa10 where aaa100='AAC011' and aaa102=a.aac011) aac011_name,
+			aac183,
+			(select aaa103 from v_aa10 where aaa100='AAC183' and aaa102=a.aac183) aac183_name,
+			eec360,
+			(select aaa103 from v_aa10 where aaa100='EEC360' and aaa102=a.eec360) eec360_name,
+			aac016,
+			(select aaa103 from v_aa10 where aaa100='AAC016' and aaa102=a.aac016) aac016_name,
+			aac015,
+			(select aaa103 from v_aa10 where aaa100='AAC015' and aaa102=a.aac015) aac015_name,
+			aac017,
+			(select aaa103 from v_aa10 where aaa100='AAC017' and aaa102=a.aac017) aac017_name,
+			aac033,
+			(select aaa103 from v_aa10 where aaa100='AAC033' and aaa102=a.aac033) aac033_name,
+			aae005,
+			aac026,
+			aae015,
+			aae013,
+			(select aaa103 from v_aa10 where aaa100='EEC103' and aaa102=a.eec103) eec103_name,
+			bus_uuid,
+			(select  m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=a.bus_uuid) logo_url,
+			eae052
+    	FROM
+    		ce01 a
+    	WHERE
+    		a.eec001 = #{eec001}
+	</select>
+	
+	
+	<!-- 根据用户信息获取学员信息 -->
+	<select id="getStudentInfo"  resultType="Hc61" parameterType="SUser">
+		SELECT
+			a.chc111,
+			a.aac002,
+			a.aac003
+    	FROM
+    		hc61 a,ce01 b,s_user c
+    	WHERE
+    	    c.userid = #{userid}
+    	  and
+    		b.eec001 = c.baseinfoid
+          and 
+    		a.aac002 = b.aac002
+	</select>
+	
+		  
+</mapper>

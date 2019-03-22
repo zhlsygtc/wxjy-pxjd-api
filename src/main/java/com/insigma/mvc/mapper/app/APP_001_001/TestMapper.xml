@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.app.APP_001_001.TestMapper">
+    <select id="getStudentInfo"  resultType="Hc61">
+        SELECT
+        a.chc111,
+        a.aac002,
+        a.aac003
+        FROM
+        hc61 a,ce01 b,s_user c
+        WHERE
+        c.userid = #{testId}
+        and
+        b.eec001 = c.baseinfoid
+        and
+        a.aac002 = b.aac002
+    </select>
+</mapper>

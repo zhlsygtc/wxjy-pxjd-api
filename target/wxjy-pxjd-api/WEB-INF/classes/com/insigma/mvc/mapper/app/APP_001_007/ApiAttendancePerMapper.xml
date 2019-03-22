@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.app.APP_001_007.ApiAttendancePerMapper">
+		 
+	<!--获取学员培训考勤记录信息列表 -->
+	<select id="getAttendanceList" parameterType="Hc61Dto" resultType="Hc61Dto">
+		select aca111,chb068,chc001,chb107,chb108,chb100,
+		       decode(num-cdnum-ztnum,'0','-',num-cdnum-ztnum) cqnum,
+			   decode(cdnum,'0','-',cdnum) cdnum,
+			   decode(ztnum,'0','-',ztnum) ztnum,
+		       decode((total - num - qjnum),'0','-',(total - num - qjnum)) qqnum,
+		       decode(qjnum,'0','-',qjnum) qjnum 
+		  from (select 
+		          (select code_name from code_value where code_type = 'ACA109' and code_value = b.aca111 ) aca111,
+		          b.chb068,
+		          a.chc001,
+		          to_char(b.chb107,'yyyy/MM/dd') chb107,
+		          to_char(b.chb108,'yyyy/MM/dd') chb108,
+		          b.chb100 chb100,
+		          (select count(1) from hb69 where chb068 = b.chb068 and aae100 = '1') total,
+		          (select count(1) from zc10 where chc001 = a.chc001 and chb069 in (select chb069 from hb69 where aae100 = '1' and chb068 = b.chb068)) num,
+		          (select count(1) from zc10 c,hb69 d where c.chc001 = a.chc001 and c.chb069 in (select chb069 from hb69 where aae100 = '1' and chb068 = b.chb068)
+		           and c.chb069 = d.chb069 and (to_date(to_char(c.edc362,'hh24:mi'),'hh24:mi') &gt; to_date(d.chb167,'hh24:mi'))) cdnum,
+		          (select count(1) from zc10 c,hb69 d where c.chc001 = a.chc001 and c.chb069 in (select chb069 from hb69 where aae100 = '1' and chb068 = b.chb068)
+		           and c.chb069 = d.chb069 and (to_date(to_char(c.edc363,'hh24:mi'),'hh24:mi') &lt; to_date(d.chb186,'hh24:mi'))) ztnum, 
+		          (select count(1) from zc07 where chc001 = a.chc001 and chb100 = b.chb100) qjnum
+		          from hc60 a,hb68 b  
+		         where a.chc111 = #{chc111}
+		           and a.chb068 = b.chb068 
+		         order by b.chb107 desc) t
+		  where 1 = 1 
+		       <if test="param!=null and param != ''"> 
+		         and aca111 like '%'||#{param}||'%'
+		       </if>
+	</select>
+	
+	<!--获取学员课程考勤记录信息列表 -->
+	<select id="getClassAttendanceList" parameterType="Hc61Dto" resultType="Hc61Dto">
+		select chb160,chb167,chb186,chb158,chb063,aac003_t,
+		
+		       (case when (num+qjnum) = 0 then '4' when qjnum > 0 then '3' when cdnum>0 then '2' when ztnum >0 then '1' else '0' end) flag,
+               (case when (num+qjnum) = 0 then '缺勤' when qjnum > 0 then '请假' when cdnum>0 then '迟到' when ztnum >0 then '早退' else '出勤' end) status
+		       
+		     from (select 
+		          to_char(b.chb160,'yyyy/MM/dd') chb160,
+		          b.chb167,
+		          b.chb186,
+		          b.chb158,
+		          (select code_name from code_value where code_type = 'CHB065' and code_value = c.chb065) || c.chb063 chb063,
+		          b.aac003 aac003_t,
+		          (select count(1) from zc10 where chc001 = a.chc001 and chb069 =b.chb069 ) num,
+		          (select count(1) from zc10 where chc001 = a.chc001 and chb069 = b.chb069
+		           and (to_date(to_char(edc362,'hh24:mi'),'hh24:mi') &gt; to_date(b.chb167,'hh24:mi'))) cdnum,
+		          (select count(1) from zc10 where chc001 = a.chc001 and chb069 = b.chb069 
+		           and (to_date(to_char(edc363,'hh24:mi'),'hh24:mi') &lt; to_date(b.chb186,'hh24:mi'))) ztnum, 
+		          (select count(1) from zc07 d,zc07_detail e where d.chc001 = a.chc001 and d.czc007 = e.czc007 and e.chb069 = b.chb069 ) qjnum
+		          from hc60 a,hb69 b,hb64 c 
+		         where 
+		               a.chc001 = #{chc001}
+		           and b.aae100 = '1'
+		           and b.chb068 = #{chb068}
+		           and a.chb068 = #{chb068}
+		           and b.chb064 is not null
+		           and b.chb064 = c.chb064 
+		         order by b.chb160,to_date(b.chb167,'hh24:mi')) t
+	</select>
+	
+		  
+</mapper>

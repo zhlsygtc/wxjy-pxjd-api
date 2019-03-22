@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.appraisal.JDYW_002_013.ApiAppraisalScoreMapper">
+
+	 <!-- 鉴定信息申请列表查询 -->
+	 <select id="getAppraisalScoreList" parameterType="Hb74Temp_Short" resultType="Hb74Temp_Short">
+	   select c.chb140,
+	   to_char(c.aae036, 'yyyy-MM-dd')aae036,
+	   c.chb157, 
+	   (select code_name from code_value where code_type='CHB146' and code_value = c.chb146)chb146, 
+	   c.chb333,
+	   ('理论成绩' || '[' || (select code_name from code_value where code_type='CHB147' and code_value = c.chb147) || ']' 
+	   || '实操成绩' || '[' || (select code_name from code_value where code_type='CHB147' and code_value = c.chb148) || ']'
+	   || '综合成绩' || '[' || (select code_name from code_value where code_type='CHB147' and code_value = c.chb149) || ']')chb147_name,
+	   c.chb147,
+	   c.chb148,
+	   c.chb149, 
+	   c.chb355,
+	   c.chb17c,
+	   (select code_name from code_value where code_type='CHB355' and code_value = c.chb355)chb355_name,
+	   (select code_name from code_value where code_type='CHB126' and code_value = c.chb126)chb126,
+	   (select 
+		wmsys.wm_concat(distinct(select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = a.aca111)||'['||(select code_name from code_value where code_type='ACA11A' and code_value = a.aca11a)||']') from hb75 a
+		where a.chb140 = c.chb140)aca111_aca11a,
+	   (select wmsys.wm_concat(distinct(d.aac003 || '[' || '督导员' ||']')) from hb79 b, hc73 d where b.chb140 = c.chb140 and b.aac001 = d.chc073 and b.cac024 = #{cac022} and b.aae100 = #{aae100} ) chb17e
+	   from hb74 c
+	   where c.aae100 = #{aae100} 
+	   <if test = 'aab001 != null and aab001 != ""'>
+	   		and c.aab001 = #{aab001}
+	   </if>
+	   <if test = 'chb146list != null'>
+	   		and c.chb146 in
+	   		<foreach item="selectnodes" collection="chb146list" open="(" separator="," close=")">
+	   			#{selectnodes}
+	   		</foreach>
+	   </if>
+	   <if test = 'chb17clist != null'>
+	   		and c.chb355 in
+	   		<foreach item="selectnodes" collection="chb17clist" open="(" separator="," close=")">
+	   			#{selectnodes}
+	   		</foreach>
+	   </if>
+	   <if test = 'chb140 != null and chb140 != ""'>
+	   		and c.chb140 like '%'||#{chb140}||'%'
+	   </if>
+	   <if test = 'aae036 != null and aae036 != ""'>
+	   		and to_char(c.aae036,'yyyy-MM-dd') &gt;= #{aae036}
+	   </if>
+	   <if test = 'aae037 != null and aae037 != ""'>
+	   		and to_char(c.aae036,'yyyy-MM-dd') &lt; #{aae037}
+	   </if>
+	   		and chb176 = #{chb176}
+	   order by (case c.chb355 
+	   <foreach item="selectnodes" collection="chb146Code" open="" separator="" close="">
+	     when #{selectnodes.code_name} then #{selectnodes.code_value}
+	   </foreach>
+	   else '0' end) desc
+	 </select>
+
+	<!-- 获取批次中学员成绩信息列表 -->
+	<select id="getExamineeList" parameterType="Hc63" resultType="Hc63">
+		select a.chc063, a.aac003, a.aac002, c.chc018, 
+		((select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = a.aca111) ||'['||
+		(select code_name from code_value where code_type='ACA11A' and code_value = a.aca11a) ||']')aca11a,
+		c.chc064, decode(c.chc014,NULL,'0',c.chc014) as chc014, decode(c.chc019,NULL,'0',c.chc019) as chc019, decode(c.chc016,NULL,'0',c.chc016) as chc016
+		 from hc63 a
+		 LEFT JOIN hb74 d on a.chb140 = d.chb140 
+		 left join hc64 c ON (a.chc063 = c.chc063 or c.chc064 is null)
+		where a.chb140 = #{chb140} and a.aae100 = #{aae100} and d.aae100 = #{aae100} and (c.chc064 is null or c.aae100 = #{aae100})
+		<if test = 'aac002 != null and aac002 != ""'>
+	   		and a.aac002 like '%'||#{aac002}||'%' 
+	   </if>
+	   <if test = 'aac003 != null and aac003 != ""'>
+	   		and a.aac003 like '%'||#{aac003}||'%'
+	   </if>
+	</select>
+
+	<!-- 更新单个学员成绩信息 -->
+	<update id="saveExamineeInfo" parameterType="Hc64">
+		update hc64
+		<set> 
+		aae011 = #{aae011},
+		aae036 = SYSDATE,
+		<if test = "chc014 != null and chc014 != 0">
+		 	chc014 = #{chc014},
+		</if>
+		<if test = "chc019 != null and chc019 != 0">
+		 	chc019 = #{chc019},
+		</if>
+		<if test = "chc016 != null and chc016 != 0">
+		 	chc016 = #{chc016},
+		 </if>
+		 <if test = "chc018 != null">
+		 	chc018 = #{chc018}
+		 </if>
+		</set>
+		where chc064 = #{chc064}
+	</update>
+
+	<!-- 新增单个学员成绩信息 -->
+	<insert id="insertExamineeInfo" parameterType="Hc64">
+		<selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chc064"> 
+	            select sys_guid() from dual 
+	     </selectKey>
+		insert into Hc64(chc063, chb140, chb120, chc001, chc014, chc019, chc016, aae100, aae011, aae036, chc064)
+		values(
+		#{chc063,jdbcType=VARCHAR},
+		#{chb140,jdbcType=VARCHAR},
+		a.chb120 as chb120,
+		a.chc001 as chc001,
+		#{chc014,jdbcType=DOUBLE},
+		#{chc019,jdbcType=DOUBLE},
+		#{chc016,jdbcType=DOUBLE},
+		#{aae100,jdbcType=VARCHAR},
+		#{aae011,jdbcType=VARCHAR},
+		SYSDATE,
+		#{chc064,jdbcType=VARCHAR}
+		)
+		select a.chb120, a.chc001 from Hc63 a where a.chc063 = #{chc063,jdbcType=VARCHAR}
+	</insert>
+
+	<!-- 更新批次信息中的考生成绩录入人数/状态 -->
+	<update id="saveHb74" parameterType="Hb74">
+		update Hb74
+		set chb158 = #{chb158},
+		chn198 = #{chn198},
+		chb147 = #{chb147},
+		chb148 = #{chb148},
+		chb149 = #{chb149}
+		where chb140 = #{chb140} and aae100 =#{aae100}
+	</update>
+
+	<!-- 批量更新批次中的考生成绩信息 -->
+	<insert id="insertExcelTempData" parameterType="java.util.List">
+        merge into hc64 a
+		using(
+		<foreach item="item" collection="list" open="" separator="union all" close="">
+			select CHB140, CHB120, AAC001, CHC001, CHC012, CHC063, 
+			#{item.chc014} as CHC014, 
+			#{item.chc019} as CHC019,
+			#{item.chc016} as CHC016,
+			#{item.chc018} as CHC018,
+			#{item.aae100} as AAE100
+			from hc63
+			where aac002 = #{item.aac002} and chb140 = #{item.chb140} and aae100 = #{item.aae100}
+		</foreach>
+		) b 
+		on (a.chc063 = b.chc063 and a.chb140 = b.chb140 and a.chc001 = b.chc001)
+		when MATCHED then 
+		update set a.CHC014 = b.CHC014,a.CHC019 = b.CHC019,a.CHC016 = b.CHC016, a.CHC018 = b.CHC018, a.AAE036 = SYSDATE
+		when not MATCHED then
+		insert (CHC064, CHC063, CHB140, CHB120, AAC001, CHC001, CHC012, CHC014, CHC019, CHC016, CHC018, AAE100, AAE036)
+		values(sys_guid(), b.CHC063, b.CHB140, b.CHB120, b.AAC001, b.CHC001, b.CHC012, b.CHC014, b.CHC019, b.CHC016, b.CHC018, #{item.aae100}, SYSDATE)
+    </insert>
+
+	<!-- 获取已录入人数 -->
+	<select id="countHc64Chc014" parameterType="String" resultType="Hb74">
+		select sign(b.chb157 - (select count(*) from hc64 where b.chb140 = chb140 and chc014 is not null and aae100 = #{aae100})) as chb147,
+		sign(b.chb157 - (select count(*) from hc64 where b.chb140 = chb140 and chc019 is not null and aae100 = #{aae100})) as chb148,
+		sign(b.chb157 - (select count(*) from hc64 where b.chb140 = chb140 and chc016 is not null and aae100 = #{aae100})) as chb149
+		 from hb74 b
+		where b.chb140 = #{chb140} and b.aae100 = #{aae100}  
+	</select>
+
+	<!-- 获取合格人数 -->
+	<select id="getCountChc018" parameterType="String" resultType="int">
+		select count(*) from hc64 b
+		where b.chb140 = #{chb140} and b.chc018 = #{chc018} and b.aae100 = #{aae100}  
+	</select>
+
+	<!-- 更新批次考试成绩状态 -->
+	<update id="saveHb74Chb147" parameterType="String">
+		update Hb74
+		set chb147 = #{chb147},chb148 = #{chb148},chb149 = #{chb149}
+		where chb140 = #{chb140}
+	</update>
+
+	<!-- 获取批次成绩录入详情 -->
+	<select id="getAppraisalScoreInfo" parameterType="String" resultType="Hb74Temp_Short">
+		select chb140, chb147, chb148, chb149 from hb74
+		where chb140 = #{chb140} and aae100 = #{aae100}  
+	</select>
+
+	<!-- 提交成绩待审核 -->
+	<update id="saveSubmitScore" parameterType="String">
+		update Hb74
+		set chb146 = #{chb146},chb355 = #{chb355}
+		where chb140 = #{chb140}
+	</update>
+</mapper>

@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.train.PXYW_001_004.ApiCompreQueryMapper">
+    <!-- 查询开班信息列表 -->
+    <select id="getInfoList" parameterType="Hb68" resultType="Hb68">
+	select
+        decode(nvl((select count(1)  from hc60 where chb068= a.chb068), 0),0,'0','1') stu,
+        decode(nvl((select count(1)  from hb69 where chb068= a.chb068 and aae100 = '1'), 0),0,'0','1') cou,
+        chb100,
+        a.chb068,
+        aae001,
+        chb315,
+        (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102=a.aca111) aca111,
+        (select code_name from code_value where code_type = 'CHB103' and code_value=a.chb103) chb103,
+        a.chb106,
+        to_char(a.chb107, 'yyyy-MM-dd') chb107,
+        to_char(a.chb108, 'yyyy-MM-dd') chb108,
+        (select code_name from code_value where code_type = 'CHB111' and code_value=a.chb111) chb111,
+        c.chb101,
+        a.chb527
+    from
+        HB68 a full join 
+        HB66 b on 
+        a.chb068 = b.chb068
+        full join 
+        hb67 c on
+        b.chb067 = c.chb067
+    where
+         a.aae100 = '1'
+	     and a.aab001 = #{aab001}
+        <if test="chb100!=null">
+            and a.chb100 like '%'||#{chb100}||'%'
+        </if>
+        <if test="aca111!=null">
+            and a.aca111 = #{aca111}
+        </if>
+        <if test="chb103!=null">
+        	and a.chb103 = #{chb103}
+        </if>
+        <if test="chb107!=null">
+        	and to_char(a.chb107,'yyyy-MM-dd') <![CDATA[>=]]> #{chb107}
+        </if>
+        <if test="chb108!=null">
+        	and to_char(a.chb108,'yyyy-MM-dd') <![CDATA[<=]]> #{chb108}
+        </if>
+        <if test="chb111!=null">
+        	and a.chb111 = #{chb111}
+        </if>
+        <if test="chb101!=null">
+        	and c.chb101 like '%'||#{chb101}||'%'
+        </if>
+		<if test="chb057!=null">
+			and a.chb057 = #{chb057}
+		</if>
+   			order by chb100 desc 
+    </select>
+
+	<!-- 根据合并后班级查合并前班级列表 -->
+	<select id="getInfoListByChb067" parameterType="Hb67" resultType="Hb68">
+        SELECT DECODE(NVL((SELECT COUNT(1) FROM HC60 c WHERE c.CHB068 = A.CHB068 and c.eae052 = '1'), 0),
+            0,
+            '0',
+            '1') STU,
+        DECODE(NVL((SELECT COUNT(1) FROM HB69 WHERE CHB068 = A.CHB068 and aae100 = '1'), 0),
+            0,
+            '0',
+            '1') COU,
+        A.CHB100,
+        A.CHB068,
+        A.AAE001,
+        A.CHB315,
+        (SELECT aaa103
+            FROM v_aa10
+            WHERE aaa100 = 'ACA109'
+            AND aaa102 = A.ACA111) ACA111,
+        (SELECT CODE_NAME
+            FROM CODE_VALUE
+            WHERE CODE_TYPE = 'CHB103'
+            AND CODE_VALUE = A.CHB103) CHB103,
+        A.CHB106,
+        TO_CHAR(A.CHB107, 'yyyy-MM-dd') CHB107,
+        TO_CHAR(A.CHB108, 'yyyy-MM-dd') CHB108,
+        (SELECT CODE_NAME
+            FROM CODE_VALUE
+            WHERE CODE_TYPE = 'CHB111'
+            AND CODE_VALUE = A.CHB111) CHB111,
+        C.CHB101,
+        A.CHB527
+        FROM HB68 A
+        JOIN HB66 B
+        ON A.CHB068 = B.CHB068
+        JOIN HB67 C
+        ON B.CHB067 = C.CHB067
+        WHERE A.AAE100 = '1'
+        AND C.AAE100 = '1'
+        AND C.CHB067 = #{chb067}
+        ORDER BY A.CHB100
+    </select>
+
+    <select id="getHc60ById" parameterType="Hc60" resultType="Hc60">
+    select 
+      c.chc001,
+	  c.aac003,
+	  c.aac002,
+	  (select code_name from code_value where code_type='AAC004' and code_value=c.aac004) aac004,
+	  nvl(floor(months_between(SYSDATE, c.aac006) / 12),'999') a_aac006,
+	  nvl((select code_name from code_value where code_type='CHC002' and code_value=c.chc002),'-') chc002,
+	  nvl((select code_name from code_value where code_type='AAC011' and code_value=c.aac011),'-') aac011,
+	  nvl((SELECT code_name FROM code_value WHERE code_type = 'AAC009' AND code_value = d.chc008),'-') chc008,
+	  c.chc003,
+	  c.aae005,
+	  c.aac026,
+	  c.aac001,
+	   (select count(1) from s_file_record  a, s_bus_file_record b where  a.file_uuid=b.file_uuid AND
+            c.chc001=b.file_bus_id and b.file_bus_type='010406') filenum
+	from
+	  HC60 c,hc61 d 
+	where
+	  c.chb068=#{chb068}
+	  and c.chc111 = d.chc111
+	  and c.aae100='1' and c.eae052 = '1'
+	order by to_number(c.chc066)
+    </select>
+    <select id="getHb68ById" parameterType="Hb68" resultType="Hb68">
+    select 
+      chb068,
+	  aae001,
+	  (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102=aca111) aca111,
+	  (select code_name from code_value where code_type='CHB111' and code_value=chb111) chb111_name,
+	  chb105,
+	  chb106,
+	  aae004,
+	  acb502,
+	  chb100,
+	  (select code_name from code_value where code_type='CHB103' and code_value=chb103) chb103
+	from 
+	  hb68
+	where 
+	  aae100='1'
+	  and chb068 = #{chb068}
+    </select>
+    
+   
+  <select id="getHb69ByChb068" parameterType="Hb69" resultType="Hb69">
+	select 
+	  t.chb069,
+	  t.chb158,
+	  to_char(t.chb160,'yyyy-MM-dd') chb160,
+	  t.aac003,
+	  (select code_name from code_value where code_type = 'CHB065' and code_value = a.chb065) || a.chb063 chb161,
+	  t.chb167,
+	  t.chb186,
+	  t.chb109,
+	  (select count(1) from s_file_record  a, s_bus_file_record b where  a.file_uuid=b.file_uuid AND
+       t.chb069=b.file_bus_id and b.file_bus_type='010407') filenum
+	from 
+	  hb69 t,hb64 a
+	where
+	  t.chb064 = a.chb064
+	and
+	  t.chb068 = #{chb068}
+	  <if test="nostart!=null">
+     and to_date(TO_CHAR(t.chb160 ,'yyyy-mm-dd')|| ' '||t.chb167, 'yyyy-mm-dd hh24:mi') <![CDATA[>]]> sysdate 
+      </if>
+	  order by t.chb160,t.chb186
+    </select>
+    
+    <select id="getHb69ById" parameterType="Hb69" resultType="Hb69">
+    
+	    select 
+		  t.chb069,
+		  t.chb158,
+		  to_char(t.chb160,'yyyy-MM-dd') chb160,
+		  t.aac003,
+		  (select code_name from code_value where code_type = 'CHB065' and code_value = d.chb065) || d.chb063 chb161,
+		  t.chb167,
+		  t.chb186,
+		  t.chb109,
+		  ycqcs, 
+	      decode(zccq,0,'',zccq) zccq, 
+	      decode(qjrs,0,'',qjrs) qjrs, 
+	      decode(cdrc,0,'',cdrc) cdrc, 
+	      decode(ztrc,0,'',ztrc) ztrc, 
+	      decode(qqrc,0,'',qqrc) qqrc   
+		from 
+		  hb69 t,hb64 d,(SELECT a.chb068,b.chb069,
+	                count(1) ycqcs,
+	                SUM(decode(get_class_begin_status(chc001, chb069), '0', 1, 0)) zccq,
+	                SUM(decode(get_class_begin_status(chc001, chb069), '1', 1, 0)) qjrs,
+	                SUM(decode(get_class_begin_status(chc001, chb069), '2', 1, 0)) cdrc,
+	                SUM(decode(get_class_end_status(chc001, chb069), '2', 1, 0)) ztrc,
+	                SUM(decode(get_class_begin_status(chc001, chb069), '4',
+	                            decode(get_class_end_status(chc001, chb069), '4', 1,
+	                                    0), 0)) qqrc
+	           FROM hb68 a, hb69 b, hc60 c
+	          WHERE a.chb068 = b.chb068
+	            AND a.chb068 = c.chb068
+	            and a.aae100 = '1'
+	            and b.aae100 = '1'
+	            and c.aae100='1' and c.eae052 = '1'
+	            and b.chb064 is not null
+	            and a.chb068 = #{chb068}
+	          GROUP BY a.chb068,b.chb069) q
+		where t.chb064 = d.chb064
+		and   t.aae100 = '1'
+		
+		<if test="nostart!=null">
+     		and to_date(TO_CHAR(t.chb160 ,'yyyy-mm-dd')|| ' '||t.chb186, 'yyyy-mm-dd hh24:mi') <![CDATA[>]]> sysdate 
+        </if>
+		
+		and t.chb069 = q.chb069
+		and t.chb068 = #{chb068}
+		order by t.chb160,t.chb186
+    
+    </select>
+    
+	<select id="getHb69ById_df" parameterType="Hb69" resultType="Hb69">
+	    	select 
+	    		chb069,
+	    		chb158,
+	    		to_char(chb160,'yyyy-MM-dd') chb160,
+	    		(select chb063 from hb64 where chb064 = a.chb064) chb063,
+	    		chb167,
+	    		chb186,
+	    		aac003,
+	    		aac002,
+	    		chb109,
+	    		chb162,
+	    		(select code_name from code_value where code_type = 'CHB163' and code_value = a.chb163) chb163
+		    from
+		    	hb69 a
+		    where
+		    	chb068 = #{chb068}
+		    and aae100 = '1'
+			order by chb160
+	    </select>    
+    
+    <select id="getMergeList" parameterType="Hb68" resultType="Hb67">
+    select 
+     chb067,
+	 to_char(chb107,'yyyy-MM-dd') chb107,
+	 to_char(chb108,'yyyy-MM-dd') chb108,
+	 chb101,
+	 (select code_name from code_value where code_type='CHB103' and code_value=chb103) chb103,
+	 (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102=aca111) aca111,
+	 chb105,
+	 chb106,
+	 aab001
+	from 
+	  hb67
+	where
+	  aab001 = #{aab001}
+	  and aae100 = '1'
+	  <if test="chb100 !=null"> 
+	  	  and 1 = 2
+	  </if>
+      <if test="aca111!=null">
+          and aca111 = #{aca111}
+      </if>
+      <if test="chb103!=null">
+      	and chb103 = #{chb103}
+      </if>
+      <if test="chb107!=null">
+      	and to_char(chb107,'yyyy-MM-dd') <![CDATA[>=]]> #{chb107}
+      </if>
+      <if test="chb108!=null">
+      	and to_char(chb108,'yyyy-MM-dd') <![CDATA[<=]]> #{chb108}
+      </if>
+      <if test="chb101!=null">
+      	and chb101 like '%'||#{chb101}||'%'
+      </if>
+      order by chb107 desc
+    </select>
+    
+    <select id="getHb67ById" parameterType="Hb67" resultType="Hb67">
+		select 
+		  to_char(chb107,'yyyy-MM-dd') chb107,
+		  to_char(chb108,'yyyy-MM-dd') chb108,
+		  chb101,
+		  (select code_name from code_value where code_type='CHB103' and code_value = chb103) chb103,
+		  (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = aca111) aca111,
+		  chb105,
+		  chb106,
+		  chb189,
+		  chb067
+		from 
+		  hb67 a
+		where 
+		  chb067 = #{chb067}
+    </select>
+    <select id="getHc60StuList" parameterType="Hc60" resultType="Hc60">
+    	select 
+    	  chc001,
+    	  (select chb100 from hb68 where chb068 = t.chb068) chb100,
+		  aac003,
+		  aac002,
+		  (select code_name from code_value where code_type='AAC004' and code_value = aac004) aac004,
+		  to_char(floor(months_between(SYSDATE, aac006) / 12)) a_aac006,
+		  (select code_name from code_value where code_type='CHC002' and code_value = chc002) chc002,
+		  (select code_name from code_value where code_type='AAC011' and code_value = aac011) aac011,
+		  chc003,
+		  aae005,
+		  aac026,
+		  ecc064
+		from 
+		  hc60 t
+		where 
+		  aae100 = '1' and eae052 = '1'
+		 and
+		  chb068 in (select chb068 from hb66 where chb067=#{chb067})
+		 and (select chc018 from hc66 where chc001 = t.chc001) = '1'
+		order by t.chc066
+    </select>
+     <select id="getHGStuList" parameterType="Hc60" resultType="Hc60">
+    	select 
+		  aac003,
+		  aac002,
+		  (select code_name from code_value where code_type='AAC004' and code_value = aac004) aac004,
+		  to_char(floor(months_between(SYSDATE, aac006) / 12)) a_aac006,
+		  (select code_name from code_value where code_type='CHC002' and code_value = chc002) chc002,
+		  (select code_name from code_value where code_type='AAC011' and code_value = aac011) aac011,
+		  chc003,
+		  aae005,
+		  aac026,
+		  ecc064
+		from 
+		  hc60 
+		where 
+		  chb068 in (select chb068 from hb66 where chb067=#{chb067})
+    </select>
+    <select id="getHb69MergeCourseList" parameterType="Hb69" resultType="Hb69">
+        select 
+         (select chb100 from hb68 where chb068 = t.chb068) chb100,
+	     t.chb158,
+	     to_char(t.chb160,'yyyy-MM-dd') chb160,
+	     t.aac003,
+	     (select code_name from code_value where code_type = 'CHB065' and code_value = a.chb065) || a.chb063 chb063 ,
+	     (select code_name from code_value where code_type = 'CHB163' and code_value = t.chb163) chb163,
+	     t.chb167,
+	     t.chb186,
+	     t.chb109
+	   from 
+	     hb69 t ,hb64 a
+	   where
+	     a.chb064(+) = t.chb064
+	   and 
+	     t.aae100 = '1'
+	   and
+	     chb068 in (select chb068 from hb66 where chb067=#{chb067})
+	   order by chb100,t.chb160,t.chb186
+    </select>
+
+    <select id="getHc66ById" parameterType="Hc66" resultType="Hc66">
+    	SELECT T.AAC001,
+    	    a.aac003,
+		   	T.CHC001,
+		   	T.CHC014,
+		   	DECODE(SIGN(NVL(T.CHC014, 0) - T3.CZC910), -1, '0', '1') CHC014_MARK,
+		   	T.CHC019,
+		   	DECODE(SIGN(NVL(T.CHC019, 0) - T3.CZC912), -1, '0', '1') CHC019_MARK,
+		   	T.CHC016,
+		   	DECODE(SIGN(NVL(T.CHC016, 0) - T3.CZC914), -1, '0', '1') CHC016_MARK,
+		   	T.CHC018,
+		   	(SELECT CODE_NAME
+			   	FROM CODE_VALUE
+			 	WHERE CODE_TYPE = 'CHC029'
+			   	AND CODE_VALUE = T2.CHC029) CHC029_NAME,
+		   	TO_CHAR(T1.CHC024, 'yyyy-MM-dd') CHC024_STR,
+		   	T1.CHC023,
+		   	NVL(T1.BUS_UUID, '0') HAS_CETIFICATE_FILE,
+		   	(SELECT M.FILE_REL_PATH
+			  	FROM S_FILE_RECORD M, S_BUS_FILE_RECORD N
+			 	WHERE M.FILE_UUID = N.FILE_UUID
+			   	AND N.BUS_UUID = T1.BUS_UUID) CETIFICATE_URL
+	  	FROM HC66 T, HC67 T1, HC60 T2, ZC13 T3,hc60 a
+	 	WHERE T.CHC001 = #{chc001}
+        AND T.AAE100 = '1'
+        and t.chc001 = a.chc001
+        AND T.CHC001 = T1.CHC001(+)
+        AND T.CHC001 = T2.CHC001(+)
+        AND T3.CZC013 = '1'
+    </select>
+
+    <select id="getZc10ById" parameterType="Zc10" resultType="Zc10">
+		select to_char(chb160,'yyyy-MM-dd') chb160,
+	       chb167,
+	       chb186,
+	       to_char(edc364,'yyyy-MM-dd') edc364,
+	       to_char(edc362,'yyyy-MM-dd hh24:mi:ss') edc362_s,
+	       to_char(edc363,'yyyy-MM-dd hh24:mi:ss') edc363_s,
+	       b.aae013
+		from hb69 a,zc10 b
+		where a.chb069 = b.chb069
+		and a.aae100 = '1'
+		and chc001 = #{chc001}
+		order by b.aae036 desc
+    </select>
+    
+    <select id="attendanceQueryList" parameterType="Hb69DTO" resultType="Hb69DTO">
+			select 
+			  a.chb100,
+			  b.chb069,
+			  b.chb158,
+			  to_char(b.chb160,'yyyy-MM-dd') chb160,
+			  c.aac003 aac003_s,
+			  b.aac003,
+			  c.aac002,
+			  b.chb167,
+			  b.chb186,
+			  b.chb109,
+			  get_class_begin_status(c.chc001, b.chb069) cdrc,
+		      get_class_end_status(c.chc001, b.chb069) ztrc
+		  FROM hb68 a, hb69 b, hc60 c
+		 WHERE a.chb068 = b.chb068
+		   AND a.chb068 = c.chb068
+		    and a.aae100 = '1' 
+		    and c.aae100='1' and c.eae052 = '1'
+		    and b.aae100 = '1'
+		    and b.chb064 is not null
+			and a.chb068 = #{chb068}
+		order by b.chb160,b.chb186,c.chc066
+    </select>
+    
+</mapper>

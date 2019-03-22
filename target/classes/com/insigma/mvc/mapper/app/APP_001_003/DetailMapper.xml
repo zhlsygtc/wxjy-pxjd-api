@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.app.APP_001_003.DetailMapper">
+
+
+    <!-- 手机端一条培训计划的详细信息 -->
+    <select id="getDetailPlan" resultType="Hb65">
+        select
+        (select code_name from code_value where code_type = 'ACA109' and code_value=h.aca111) aca111_name,
+        (select code_name from code_value where code_type = 'ACA11A' and code_value=h.aca11a) aca11a,
+        to_char(h.chb107,'yyyy.mm.dd') chb107,
+        to_char(h.chb108,'yyyy.mm.dd') chb108,
+        (SELECT count(1) from hb59 b WHERE b.chb055= h.chb055) total,
+        (select #{fore}||m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=a.bus_uuid) photo_url,
+        s.name,
+        h.chb105,
+        h.aae004,
+        h.acb502,
+        h.gps_lon,
+        h.gps_lat,
+        h.aca111,
+        decode ((select count(1) from hb56 where userid=#{userid} and chb055=h.chb055),'1','1','0') flag,
+        s.linkman,
+		a.aae005 tel,
+		s.address,
+        h.chb106,
+        h.chb130
+        from hb65 h,smt_group s,ad01 a
+        where  h.aab001=s.groupid and h.aab001=a.aab001 AND
+        h.chb055 = #{chb055}
+    </select>
+    
+    <select id="getSimilarPlan" resultType="Hb65">
+        select
+        (select #{fore}||m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=a.bus_uuid) photo_url,
+        (select code_name from code_value where code_type = 'ACA109' and code_value=h.aca111) aca111_name,
+        s.name,
+        (select code_name from code_value where code_type = 'ACA11A' and code_value=h.aca11a) aca11a,
+        (SELECT count(1) from hb59 b WHERE b.chb055= h.chb055) total,
+        to_char(h.chb107,'yyyy.mm.dd') chb107,
+        to_char(h.chb108,'yyyy.mm.dd') chb108,
+
+        h.aca111,
+        h.chb106,
+        h.chb130,
+        h.chb055,
+        h.aab001
+        from hb65 h,smt_group s,ad01 a
+        where h.aab001=s.groupid and h.aab001=a.aab001 AND
+        h.aca111 = #{aca111}
+    </select>
+    
+    <!-- 手机端一个机构的培训计划 -->
+    <select id="getInstPlan" resultType="Hb65">
+        select
+        (select #{fore}||m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=a.bus_uuid) photo_url,
+        (select code_name from code_value where code_type = 'ACA109' and code_value=h.aca111) aca111_name,
+        s.name,
+        (select code_name from code_value where code_type = 'ACA11A' and code_value=h.aca11a) aca11a,
+        (SELECT count(1) from hb59 b WHERE b.chb055= h.chb055) total,
+        to_char(h.chb107,'yyyy.mm.dd') chb107,
+        to_char(h.chb108,'yyyy.mm.dd') chb108,
+        h.aca111,
+
+        h.chb130,
+        h.chb106,
+        h.chb055,
+        h.aab001
+        from hb65 h,smt_group s,ad01 a
+        where h.aab001=s.groupid and h.aab001=a.aab001 AND h.aab001 = #{aab001}
+        order by h.chb107 desc
+    </select>
+
+    <select id="getDetailInst" resultType="Ad01">
+        SELECT (select #{fore}||m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=a.bus_uuid) photo_url,
+        s.name,
+        s.linkman,
+        a.aae005 tel,
+        s.address,
+        a.aab018 FROM ad01 a,smt_group s WHERE a.aab001 = s.groupid and a.aab001 = #{aab001}
+    </select>
+    <!-- 查询机构专业 -->
+    <select id="getInstMajor" resultType="String">
+        select code_name from code_value where code_type = 'ACA109' and code_seq in
+        (SELECT aca111 from hb62 where aab001 = #{aab001})
+    </select>
+    <!-- 查询机构老师 -->
+    <select id="getInstTea" resultType="Hb61">
+        select (select #{fore}||m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=h.bus_uuid) photo_url,
+        h.chb061,
+        h.aac003
+        from hb61 h where aab001=#{aab001} and aae100 = '1' and eae052 = '1'
+    </select>
+    <!-- 查询老师专业 -->
+    <select id="getTeaQua" resultType="String">
+        select code_name from code_value where code_type = 'ACA109' and code_value in
+        (SELECT aca111 from hc74 where chb061 = #{chb061}) and rownum &lt; 3
+    </select>
+    <!-- 查询机构文件 -->
+    <select id="getInstFile" resultType="java.util.HashMap">
+        select #{fore}||m.file_rel_path file_path,
+        (case when n.file_bus_type = '010403' then '1' else '2' end) file_type from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid in (select bus_uuid from ad01_file where aab001=#{aab001} and eae052 = '1') and n.file_bus_type in ('010403','010402')
+    </select>
+</mapper>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.app.APP_001_006.ApiMyPlanMapper">
+    <select id="getMyPlans" resultType="Hb65">
+        SELECT (select code_name
+          from code_value
+         where code_type = 'ACA109'
+           and code_value = h.aca111) aca111_name,
+        (select code_name
+          from code_value
+         where code_type = 'ACA11A'
+           and code_value = h.aca11a) aca11a_name,
+           h.aca11a,
+        h.aca111,
+        a.chc111,
+        h.chb130,
+       (select name from smt_group where groupid = h.aab001) name,
+       to_char(h.chb107, 'yyyy.mm.dd') chb107,
+       to_char(h.chb108, 'yyyy.mm.dd') chb108,
+       to_char(c.ecc064, 'yyyy.mm.dd') ecc064,
+       h.chb055,
+       (case when c.eae052 = '9' then '报名失败' else '报名成功' end) eae052_name,
+       (case when c.eae052 = '9' then '0' else '1' end) eae052,
+       (select t.chb068
+          from hb68 t
+         where t.chb068 in (select chb068 from hb58 where chb055 = c.chb055)
+           and exists (select 1 from hc60 where chc111 = c.chc111 and chb068 = t.chb068)) chb068,
+        decode ((select t.chb528
+                     from hb68 t
+                    where t.chb068 in
+                          (select chb068 from hb58 where chb055 = c.chb055)
+                      and exists
+                    (select 1 from hc60 where chc111 = c.chc111 and chb068 = t.chb068)),'1','2','0','1','0' ) chb104,
+        decode ((select t.chb528
+        from hb68 t
+        where t.chb068 in
+        (select chb068 from hb58 where chb055 = c.chb055)
+        and exists
+        (select 1 from hc60 where chc111 = c.chc111 and chb068 = t.chb068)),'1','已结业','0','已开班','未开班' ) chb104_name
+  FROM hb65 h, hc61 a, hb59 c
+ WHERE h.aae100 = '1'
+   and a.chc111 = c.chc111
+   and c.chc111 = #{chc111}
+   and h.chb055 = c.chb055
+   order by c.ecc064 desc
+    </select>
+
+    <!-- 已开班班级信息 -->
+    <select id="getMyDetailClass" resultType="Hb68">
+        SELECT h.chb100,
+        (select code_name from code_value where code_type = 'CHB103' and code_value = h.chb103) chb103,
+        (select code_name from code_value where code_type = 'ACA109' and code_value = h.aca111) aca111_name,
+        h.aca111,
+        (select code_name from code_value where code_type = 'ACA11A' and code_value = h.aca11a) aca11a_name,
+        h.aca11a,
+        h.chb106,
+        h.chb105,
+       to_char(h.chb107, 'yyyy.mm.dd') chb107,
+       to_char(h.chb108, 'yyyy.mm.dd') chb108,
+        h.gps_lon,
+        h.gps_lat
+        FROM hb68 h WHERE h.chb068=#{chb068}
+    </select>
+
+    <select id="getMyClassTea" resultType="Hb61">
+        SELECT DISTINCT (select #{fore}||m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=h.bus_uuid) photo_url,
+        h.aac003,
+        (select code_name from code_value where code_type = 'AAC004' and code_value = h.aac004) aac004,
+        (select code_name from code_value where code_type = 'AAC011' and code_value = h.aac011) aac011,
+        (select code_name from code_value where code_type = 'ECD296' and code_value = h.ecd296) ecd296,
+        h.chb061
+        FROM hb68 a,hb69 b,hb61 h WHERE a.chb068=b.chb068 AND b.aac002=h.aac002 AND h.aae100 = '1' AND a.chb068=#{chb068}
+    </select>
+
+    <select id="getChc001" resultType="String">
+        select chc001 from hc60 where chc111=#{chc111} and chb068=#{chb068}
+    </select>
+
+    <select id="getMyScore" resultType="Hc66">
+        SELECT chc014,chc016,chc019 FROM hc66 WHERE chc001=#{chc001}
+    </select>
+
+    <select id="getMyCourse" resultType="Hb69">
+        select t.*,rownum,
+        (case when (cqnum+qjnum) = 0 then '4' when qjnum > 0 then '3' when cdnum>0 then '2' when ztnum >0 then '1' else '0' end) flag,
+        (case when (cqnum+qjnum) = 0 then '缺勤' when qjnum > 0 then '请假' when cdnum>0 then '迟到' when ztnum >0 then '早退' else '出勤' end) status
+        from
+        (select
+        b.chb158,
+        (select chb063 from hb64 where chb064 = b.chb064) chb064,
+        b.chb167,
+        b.chb186,
+        (select code_name from code_value where code_type = 'CHB103' and code_value = c.chb103) chb103_name,
+        c.chb100,
+        (select count(1) from hb69 where chb068 = #{chb068}) total,
+        (select count(1) from zc10 where chc001 = a.chc001 and chb069 =b.chb069 ) cqnum,
+        (select count(1) from zc10 where chc001 = a.chc001 and chb069 = b.chb069
+        and (to_date(to_char(edc362,'hh24:mi'),'hh24:mi') > to_date(b.chb167,'hh24:mi'))) cdnum,
+        (select count(1) from zc10 where chc001 = a.chc001 and chb069 = b.chb069
+        and (to_date(to_char(edc363,'hh24:mi'),'hh24:mi') &lt; to_date(b.chb186,'hh24:mi'))) ztnum,
+        (select count(1) from zc07 d,zc07_detail e where d.chc001 = a.chc001 and d.czc007 = e.czc007 and e.chb069 = b.chb069 ) qjnum
+        from hc60 a ,hb69 b,hb68 c
+        where a.aae100 = '1'
+        and a.chc001 = #{chc001}
+        and b.chb068 = #{chb068}
+        and a.chb068 = #{chb068}
+        and c.chb068 = #{chb068}
+        and b.chb160 = to_date(#{chb160},'yyyy-mm-dd')
+        order BY TO_DATE(b.chb167, 'hh24:mi')) t
+    </select>
+
+    <select id="getChb160" resultType="String">
+        SELECT DISTINCT to_char(chb160,'yyyy-mm-dd') chb160 from hb69 where chb068 = #{chb068} order by chb160
+    </select>
+</mapper>

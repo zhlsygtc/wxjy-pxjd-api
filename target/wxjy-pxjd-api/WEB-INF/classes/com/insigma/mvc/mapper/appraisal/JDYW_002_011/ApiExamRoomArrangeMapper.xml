@@ -1,0 +1,461 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.appraisal.JDYW_002_011.ApiExamRoomArrangeMapper">
+
+	 <!-- 鉴定信息申请列表查询 -->
+	 <select id="getAppraisalSpeciaList" parameterType="Hb74Temp_Short" resultType="Hb74Temp_Short">
+	   select c.chb140,
+	   to_char(c.aae036, 'yyyy-MM-dd')aae036,
+	   c.chb157, 
+	   (select code_name from code_value where code_type='CHB146' and code_value = c.chb146)chb146, 
+	   c.chb333,
+	   c.chb341,
+	   (select code_name from code_value where code_type='CHB341' and code_value = c.chb341)chb341_name,
+	   (select code_name from code_value where code_type='CHB126' and code_value = c.chb126)chb126,
+	   (select 
+		wmsys.wm_concat(distinct(select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = a.aca111)||'['||(select code_name from code_value where code_type='ACA11A' and code_value = a.aca11a)||']') from hb75 a
+		where a.chb140 = c.chb140)aca111_aca11a
+	   from hb74 c, hb75 d
+	   where c.chb140 = d.chb140
+	   and c.aae100 = #{aae100} 
+	   and d.aae100 = #{aae100}
+	   <if test = 'aab001 != null and aab001 != ""'>
+	   		and c.aab001 = #{aab001}
+	   </if>
+	   <if test = 'chb146list != null'>
+	   		and c.chb146 in
+	   		<foreach item="selectnodes" collection="chb146list" open="(" separator="," close=")">
+	   			#{selectnodes}
+	   		</foreach>
+	   </if>
+	   <if test = 'chb341list != null'>
+	   		and c.chb341 in
+	   		<foreach item="selectnodes" collection="chb341list" open="(" separator="," close=")">
+	   			#{selectnodes}
+	   		</foreach>
+	   </if>
+	   <if test = 'chb140 != null and chb140 != ""'>
+	   		and c.chb140 like '%'||#{chb140}||'%'
+	   </if>
+	   <if test = 'chb120 != null and chb120 != ""'>
+	   		and d.chb120 like '%'||#{chb120}||'%' 
+	   </if>
+	   <if test = 'aae036 != null and aae036 != ""'>
+	   		and to_char(c.aae036,'yyyy-MM-dd') &gt;= #{aae036}
+	   </if>
+	   <if test = 'aae037 != null and aae037 != ""'>
+	   		and to_char(c.aae036,'yyyy-MM-dd') &lt; #{aae037}
+	   </if>
+	   group by c.chb140, c.aae036, c.chb157, c.chb146, c.chb333, c.chb341, c.chb126 
+	   order by (case c.chb146 
+	   <foreach item="selectnodes" collection="chb146Code" open="" separator="" close="">
+	     when #{selectnodes.code_name} then #{selectnodes.code_value}
+	   </foreach>
+	   else '0' end) desc
+	 </select>
+
+	<!-- 考试信息列表查询 -->
+	<select id="getExamRoomList" parameterType="Hb77" resultType = "Hb77" >
+		select b.chb140, b.chb163, to_char(b.chb164, 'yyyy-MM-dd')chb164_string, b.chb165, b.chb077, b.chb166, b.examtype,
+		(select c.code_name from code_value c where c.code_type='EXAMTYPE' and c.code_value = b.examtype)examtype_name, 
+		(select count(*) from hb71 a where a.chb077 = b.chb077 and a.aae100 = #{aae100})chb167,
+		b.chb170 from hb77 b
+		where b.chb070 = #{chb070}
+		and b.chb140 = #{chb140}
+		and b.aae100 = #{aae100}
+		<if test="examtypeList != null and examtypeList != ''">
+			and b.examtype in
+	   		<foreach item="selectnodes" collection="examtypeList" open="(" separator="," close=")">
+	   			#{selectnodes}
+	   		</foreach>
+		</if>
+	</select>
+
+	<!-- 考试信息列表查询(查询批次下对应考场容纳人数) -->
+	<select id="getExamRoomSpaceList" parameterType="String" resultType = "Hb77" >
+		select b.chb077, 
+		(select chb166 from hb78 where chb078 = b.chb078 and aae100 = #{aae100})chb166_sum,
+		((select chb166 from hb78 where chb078 = b.chb078 and aae100 = #{aae100}) - 
+		(select count(*) from hb71 a 
+		left join hb77 c on a.chb077 = c.chb077
+		where a.chb070 = b.chb070
+		and c.chb078 = b.chb078 
+		and a.aae100 = #{aae100}
+		and c.aae100 = #{aae100}))chb166  
+		from hb77 b
+		where b.chb070 = #{chb070}
+		and b.aae100 = #{aae100}
+	</select>
+
+	<!-- 鉴定批次详情 -->
+    <select id="getAppraisalInfo" parameterType="String" resultType = "Hb74" >
+		select chb140, chb400, to_char(chb400, 'yyyy-MM-dd') as chb400_String, chb401, chb402, chb403, to_char(chb403, 'yyyy-MM-dd') as chb403_String, chb404, chb405, chb406, to_char(chb406, 'yyyy-MM-dd') as chb406_String, chb407, chb408, aae013 from hb74
+		where chb140 = #{chb140}
+	</select>
+
+	<!-- 考试基本新增 -->
+	<insert id="examRoomBatchInsert" parameterType="Hb70">
+		<selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chb070"> 
+	            select sys_guid() from dual 
+	     </selectKey>
+		insert into Hb70(chb070, chb140, chb164, chb165, chb17n, examtype, aae100, aae011, aae036)
+		values(
+		#{chb070,jdbcType=VARCHAR},
+		#{chb140,jdbcType=VARCHAR},
+		#{chb164,jdbcType=VARCHAR},
+		#{chb165,jdbcType=VARCHAR},
+		#{chb17n,jdbcType=VARCHAR},
+		#{examtype,jdbcType=VARCHAR},
+		#{aae100,jdbcType=VARCHAR},
+		#{aae011,jdbcType=VARCHAR},
+		SYSDATE
+		)
+	</insert>
+
+	<!-- 更新考场基本信息 -->
+	<update id="examRoomBatchSave" parameterType="Hb70">
+	    update Hb70
+	    <set>
+	      <if test="chb140 != null">
+	        chb140 = #{chb140,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chb164 != null">
+	        chb164 = #{chb164,jdbcType=DATE},
+	      </if>
+	      <if test="chb165 != null">
+	        chb165 = #{chb165,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae011 != null">
+	        aae011 = #{aae011,jdbcType=VARCHAR}, 
+	      </if>
+	      <if test="aae011 != null">
+	        aae036 = SYSDATE,
+	      </if>
+	      <if test="chb17n != null">
+	        chb17n = #{chb17n,jdbcType=VARCHAR},
+	      </if>
+	    </set>
+	    where chb070 = #{chb070,jdbcType=VARCHAR}
+  </update>
+
+	<!-- 考场基本新增 -->
+	<insert id="examRoomInsert" parameterType="Hb77">
+		<selectKey resultType="java.lang.String" order="BEFORE" keyProperty="chb077"> 
+	            select sys_guid() from dual 
+	     </selectKey>
+		insert into Hb77(aae043, chb077, chb140, chb163, chb164, chb165, aae100, chb166, examtype, aae011, chb170, chb078, chb070, aae013)
+		values(SYSDATE,
+		#{chb077,jdbcType=VARCHAR},
+		(select chb140 from hb70 where chb070 = #{chb070} and aae100 = #{aae100}),
+		#{chb163,jdbcType=VARCHAR},
+		#{chb164,jdbcType=VARCHAR},
+		#{chb165,jdbcType=VARCHAR},
+		#{aae100,jdbcType=VARCHAR},
+		#{chb166,jdbcType=INTEGER},
+		#{examtype,jdbcType=VARCHAR},
+		#{aae011,jdbcType=VARCHAR},
+		#{chb170,jdbcType=VARCHAR},
+		#{chb078,jdbcType=VARCHAR},
+		#{chb070,jdbcType=VARCHAR},
+		#{aae013,jdbcType=VARCHAR}
+		)
+	</insert>
+
+	<!-- 更新考场基本信息 -->
+	<update id="examRoomSave" parameterType="Hb77">
+	    update Hb77
+	    <set>
+	      <if test="chb070 != null">
+	        chb140 = (select chb140 from hb70 where chb070 = #{chb070} and aae100 = #{aae100}),
+	      </if>
+	      <if test="chb163 != null">
+	        chb163 = #{chb163,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chb164 != null">
+	        chb164 = #{chb164,jdbcType=DATE},
+	      </if>
+	      <if test="chb165 != null">
+	        chb165 = #{chb165,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chb166 != 0">
+	        chb166 = #{chb166},
+	      </if>
+	      <if test="aae011 != null">
+	        aae011 = #{aae011,jdbcType=VARCHAR}, 
+	      </if>
+	      <if test="aae011 != null">
+	        aae043 = SYSDATE,
+	      </if>
+	      <if test="chb170 != null">
+	        chb170 = #{chb170,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chb078 != null">
+	        chb078 = #{chb078,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chb070 != null">
+	      	chb070 = #{chb070,jdbcType=VARCHAR},
+      	  </if>
+      	  <if test="aae013 != null">
+	      	aae013 = #{aae013,jdbcType=VARCHAR},
+      	  </if>
+	    </set>
+	    where chb077 = #{chb077,jdbcType=VARCHAR} and aae100 = #{aae100,jdbcType=VARCHAR}
+  </update>
+
+  <!-- 查询考场人员列表信息 -->
+  <select id="getExamRoomPerponList" parameterType="Hc63" resultType = "Hc63" >
+  	select chc001, aac003, b.chb071, b.chb077,
+  	 (select code_name from code_value where code_type='AAC004' and code_value = a.aac004)aac004,
+  	 aac002,
+  	 (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = a.aca111)aca111,
+  	 (select code_name from code_value where code_type='ACA11A' and code_value = a.aca11a)aca11a, 
+	b.chb330 as zuowei,
+	(SELECT M.FILE_REL_PATH
+          FROM S_FILE_RECORD M, S_BUS_FILE_RECORD N
+          WHERE M.FILE_UUID = N.FILE_UUID
+          AND N.BUS_UUID = a.BUS_UUID) photo_url
+	from hc63 a
+	left join hb71 b on a.chc063 = b.chc063
+	where
+		b.chb077 = #{chb077}
+		and a.aae100 = #{aae100}
+		and b.aae100 = #{aae100}
+  </select>
+
+  <!--  获取符合条件（可加入当前考场的人员信息） -->
+  <select id="getExamRoomPerponSelectList" parameterType="Hc63" resultType = "Hc63" >
+  	select chc001,aac003,a.chc063, 
+  	 (select code_name from code_value where code_type='AAC004' and code_value = a.aac004)aac004,
+  	 aac002,
+  	 (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = a.aca111)aca111,
+  	 (select code_name from code_value where code_type='ACA11A' and code_value = a.aca11a)aca11a,
+  	 <!-- <choose>
+		<when test='chb077 != null and chb077 != ""'>
+  	 	  (select chb330 from hb71 where chb077 = #{chb077} and examtype = #{examtype} and aae100 = #{aae100})
+  	 	</when>
+  	 	<otherwise>
+  	 	  "" as 
+  	 	</otherwise>
+	 </choose>
+  	 zuowei -->
+	(SELECT M.FILE_REL_PATH
+         FROM S_FILE_RECORD M, S_BUS_FILE_RECORD N
+         WHERE M.FILE_UUID = N.FILE_UUID
+         AND N.BUS_UUID = a.BUS_UUID) photo_url
+	from hc63 a
+	where 
+	a.chb140 = #{chb140}
+	and (select count(*) from hb71 where chc063 = a.chc063  and chb070 = #{chb070} and aae100 = #{aae100}) = 0
+	and a.aae100 = #{aae100}
+  </select>
+
+  <!-- 获取座位号数组 -->
+  <select  id="getExamRoomInfo" parameterType="String" resultType = "Hb77" >
+  	select chb166 from Hb77
+  	where chb077 = #{chb077}
+  	and aae100 = #{aae100}
+  </select>
+
+  <!-- 获取考试基本信息 -->
+  <select  id="getExamRoomBaseBatchInfo" parameterType="String" resultType = "Hb70" >
+  	select a.chb17n, a.chb070, a.chb140, a.examtype, a.chb164, to_char(a.chb164, 'yyyy-MM-dd')chb164_string, a.chb165  from Hb70 a
+  	where a.chb070 = #{chb070}
+  	and a.aae100 = #{aae100}
+  </select>
+
+  <!-- 获取考场基本信息 -->
+  <select  id="getExamRoomBaseInfo" parameterType="String" resultType = "Hb77" >
+  	select a.chb070, a.chb077, a.chb140, a.examtype, a.chb170, a.chb163, a.chb166, to_char(a.chb164, 'yyyy-MM-dd')chb164_string, a.chb165, a.chb078, b.chb076, a.aae013  
+  	from Hb77 a
+  	left join hb78 b on a.chb078 = b.chb078
+  	where a.chb077 = #{chb077}
+  	and a.aae100 = #{aae100}
+  	and b.aae100 = #{aae100}
+  </select>
+
+  <!-- 获取座位号数组 -->
+  <select  id="getseatnumber" parameterType="Hc63" resultType = "String" >
+  	select chb330 from hb71
+	where 
+	chb077 = #{chb077}
+	and aae100 = #{aae100}
+	order by 
+	chb330
+	asc 
+  </select>
+
+  <!-- savePerponExamHc63Batch弃用   -->
+  <insert id="savePerponExamHb71Batch" parameterType="java.util.HashMap">
+  	insert all
+		<foreach item="selectnodes" collection="hc63Map.hc63Batch" open="" separator="" close="">
+	  		into hb71(chb071, chc063, chb077, chb070, EXAMTYPE, chb330, chc039, aae100, aae011, aae036) 
+	  		values
+	  		((select sys_guid() from dual),
+	  		#{selectnodes.chc063,jdbcType=VARCHAR},
+	  		#{hc63Map.chb077,jdbcType=VARCHAR},
+	  		(select chb070 from hb77 where chb077 = #{hc63Map.chb077,jdbcType=VARCHAR}),
+	  		(select examtype from hb77 where chb077 = #{hc63Map.chb077,jdbcType=VARCHAR}),
+	  		#{selectnodes.chb330,jdbcType=VARCHAR},
+	  		'1',
+	  		#{hc63Map.aae100,jdbcType=VARCHAR},
+	  		#{hc63Map.aae011,jdbcType=VARCHAR},
+	  		SYSDATE)
+	  	</foreach>
+	  	select 1 from dual
+  </insert>
+
+  <update id="deletePerponExamHb71Batch" parameterType="java.util.HashMap">
+  	update hb71 
+  	set 
+		aae100 = #{hc63Map.aae100,jdbcType=VARCHAR},chb330 = #{hc63Map.chb330,jdbcType=VARCHAR}
+  	where chb071 in 
+  	<foreach item="selectnodes" collection="hc63Map.hc71Batch" open="(" separator="," close=")">
+  		#{selectnodes.chb071,jdbcType=VARCHAR} 
+  	</foreach>
+  </update>
+
+  <select  id="getcountHb74CHB341" parameterType="String" resultType = "int" >
+  	select count(*) from hb71 b
+  	left join hb70 a on a.chb070 = b.chb070
+  	where a.chb140 = #{chb140} and a.aae100 = #{aae100} and b.aae100 = #{aae100}
+  </select>
+
+  <!-- 获取考点信息list -->
+  <select  id="getTestCenterList" parameterType="String" resultType = "Hb76" >
+  	select chb076, chb178 from hb76
+  	where aab001 = #{aab001} and aae100 = #{aae100}
+  </select>
+
+  <!-- 获取考场信息list -->
+  <select  id="getExamRoomSelectList" parameterType="String" resultType = "Hb78" >
+  	select chb078, chb179, chb166, aae013 from hb78
+  	where chb076 = #{chb076} and aae100 = #{aae100}
+  </select>
+
+  <!-- 考场编排状态更新 -->
+  <update id="saveHb74Chb341" parameterType="String">
+  	update hb74
+  	<set>
+  		chb341 = #{chb341},
+  		<if test= 'chb146 != null and chb146 != ""'>
+  			chb146 = #{chb146},
+		</if>
+        chb707 = sysdate
+    </set>
+  	where chb140 = #{chb140} and aae100 = #{aae100}
+  </update>
+
+  <!-- 释放考场内学生资源 -->
+  <update id="deletePerponExamRoomBatch" parameterType="java.util.HashMap">
+		update hb71
+		set aae100 = #{hc63Map.aae100,jdbcType=VARCHAR},chb330 = #{hc63Map.chb330,jdbcType=VARCHAR}
+		where chb077 in 
+		<foreach item="selectnodes" collection="hc63Map.hb77Batch" open="(" separator="," close=")">
+			#{selectnodes.chb077,jdbcType=VARCHAR}
+		</foreach>
+  </update>
+
+  <!-- 批量删除考场信息 -->
+  <update id="deleteExamRoomBatch" parameterType="java.util.HashMap">
+	  	update hb77
+	  	set aae100 = #{hc63Map.aae100} 
+	  	where chb077 in
+	  	<foreach item="selectnodes" collection="hc63Map.hb77Batch" open="(" separator="," close=")">
+	  		#{selectnodes.chb077,jdbcType=VARCHAR} 
+	  	</foreach>
+  </update>
+
+  <!-- 获取考试批次列表 -->
+	<select id="getExamRoomBatchList" parameterType="Hb70" resultType = "Hb70" >
+		select b.chb140, b.chb17n, to_char(b.chb164, 'yyyy-MM-dd')chb164_string, b.chb165, b.chb070, 
+		COALESCE((select sum(chb166) from hb77 where chb070 = b.chb070 and aae100 = #{aae100}), 0)chb166, b.examtype,
+		(select c.code_name from code_value c where c.code_type='EXAMTYPE' and c.code_value = b.examtype)examtype_name, 
+		(select count(*) from hb71 where chb070 = b.chb070 and aae100 = #{aae100})chb167
+		 from hb70 b
+		where b.chb140 = #{chb140}
+		and b.aae100 = #{aae100}
+		<if test="examtypeList != null and examtypeList != ''">
+			and b.examtype in
+	   		<foreach item="selectnodes" collection="examtypeList" open="(" separator="," close=")">
+	   			#{selectnodes}
+	   		</foreach>
+		</if>
+	</select>
+
+	<!-- 批量更新考试批次下所有的考试信息(考试日期) -->
+  <update id="saveBatchExamination" parameterType="hb70">
+  	update hb77
+  	<set>
+      	chb164 = #{chb164},
+      	aae011 = #{aae011}
+    </set>
+  	where chb070 = #{chb070} and aae100 = #{aae100} 
+  </update>
+
+  <!-- 批量删除考试批次信息 -->
+  <update id="deleteExaminationBatch" parameterType="java.util.HashMap">
+  	update hb70
+  	<set>
+  	    aae100 = #{hb70map.aae100},
+      	aae011 = #{hb70map.aae011}
+    </set>
+  	where chb070 in 
+  	<foreach item="selectnodes" collection="hb70map.hb70String" open="(" separator="," close=")">
+  		#{selectnodes,jdbcType=VARCHAR} 
+  	</foreach>
+  </update>
+
+  <!-- 批量删除考试记录信息 -->
+  <update id="deleteExaminationRecord" parameterType="java.util.HashMap">
+  	update hb77
+  	<set>
+  	    aae100 = #{hb70map.aae100},
+      	aae011 = #{hb70map.aae011}
+    </set>
+  	where chb070 in 
+  	<foreach item="selectnodes" collection="hb70map.hb70String" open="(" separator="," close=")">
+  		#{selectnodes,jdbcType=VARCHAR} 
+  	</foreach>
+  </update>
+
+  <!-- 批量删除考试人员记录信息 -->
+  <update id="deleteExaminationPerpon" parameterType="java.util.HashMap">
+  	update hb71
+  	<set>
+  	    aae100 = #{hb70map.aae100},
+      	aae011 = #{hb70map.aae011}
+    </set>
+  	where 
+  	<choose>
+  		<!-- 按考试批次删除 -->
+		<when test='hb70map.type == "EXAM_BATCH"'>
+			chb070 in 
+		  	<foreach item="selectnodes" collection="hb70map.hb70String" open="(" separator="," close=")">
+		  		#{selectnodes,jdbcType=VARCHAR} 
+		  	</foreach>
+		</when>
+		<!-- 按考试记录删除 -->
+		<when test='hb70map.type == "EXAM_RECORD"'>
+			chb077 in 
+		  	<foreach item="selectnodes" collection="hb70map.hb77String" open="(" separator="," close=")">
+		  		#{selectnodes,jdbcType=VARCHAR} 
+		  	</foreach>
+		</when>
+		<otherwise>
+		</otherwise>
+	</choose>
+  </update>
+
+  <!-- 统计当前批次人数、当前批次未编排人数 -->
+  <select id="getStatisPerponNumber" parameterType="String" resultType = "int" >
+		select count(*) from (
+		select a.chc063 from hc63 a
+		left join hb71 b on a.chc063 = b.chc063 and b.aae100 <![CDATA[ <> ]]> #{notaae100,jdbcType=VARCHAR}
+		where a.chb140 = #{chb140,jdbcType=VARCHAR}
+		<if test = 'chb070 != null and chb070 != ""'>
+			and (b.chb070 <![CDATA[ <> ]]> #{chb070,jdbcType=VARCHAR} or b.chb071 is null)
+		</if>
+		and a.aae100 = #{aae100,jdbcType=VARCHAR}
+		GROUP BY a.chc063 )
+	</select>
+</mapper>

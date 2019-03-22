@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.appraisal.JDYW_002_009.ApiAppraisalStationDeclareMapper">
+
+	 <!-- 鉴定信息申请列表查询 -->
+	 <select id="getAppraisalSpeciaList" parameterType="Hb74Temp_Short" resultType="Hb74Temp_Short">
+	   select c.chb140,
+	   to_char(c.aae036, 'yyyy-MM-dd')aae036,
+	   c.chb157, 
+	   (select code_name from code_value where code_type='CHB146' and code_value = c.chb146)chb146, 
+	   c.chb333,
+	   c.chb326,
+	   (select code_name from code_value where code_type='CHB326' and code_value = c.chb326)chb326_name,
+	   (select code_name from code_value where code_type='CHB334' and code_value = c.chb334)chb334,
+	   (select code_name from code_value where code_type='CHB126' and code_value = c.chb126)chb126,
+	   (select 
+		wmsys.wm_concat(distinct(select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = a.aca111)||'['||(select code_name from code_value where code_type='ACA11A' and code_value = a.aca11a)||']') from hb75 a
+		where a.chb140 = c.chb140)aca111_aca11a
+	   from hb74 c
+	   where c.aae100 = #{aae100} 
+	   <if test = 'aab001 != null and aab001 != ""'>
+	   		and c.aab001 = #{aab001}
+	   </if>
+	   <if test = 'chb146list != null'>
+	   		and c.chb146 in
+	   		<foreach item="selectnodes" collection="chb146list" open="(" separator="," close=")">
+	   			#{selectnodes}
+	   		</foreach>
+	   </if>
+	   <if test = 'chb334 != null and chb334 != ""'>
+	   		and c.chb334 = #{chb334}
+	   </if>
+	   <if test = 'chb140 != null and chb140 != ""'>
+	   		and c.chb140 like '%'||#{chb140}||'%'
+	   </if>
+	   <if test = 'chb120 != null and chb120 != ""'>
+	   		and exists (select 1 from hb75 where chb140 = c.chb140 and chb120 like '%'||#{chb120}||'%')
+	   </if>
+	   <if test = 'aae036 != null and aae036 != ""'>
+	   		and to_char(c.aae036,'yyyy-MM-dd') &gt;= #{aae036}
+	   </if>
+	   <if test = 'aae037 != null and aae037 != ""'>
+	   		and to_char(c.aae036,'yyyy-MM-dd') &lt; #{aae037}
+	   </if>
+	   order by (case c.chb146 
+	   <foreach item="selectnodes" collection="chb146Code" open="" separator="" close="">
+	     when #{selectnodes.code_name} then #{selectnodes.code_value}
+	   </foreach>
+	   else '0' end) desc
+	 </select>
+
+	 <!-- 获取鉴定批次批次号的序列值 -->
+	<select id="getSQ_HB74_CHB140" resultType = "String">
+		select 
+    		'P' || to_char(sysdate,'yy')||lpad(nvl((max(substr(chb140,-5,5))+1),1),5,0) 
+    	from 
+    		hb74
+    	where 
+    		substr(chb140,2,2)=to_char(sysdate,'yy')
+	</select>
+
+	<!-- 鉴定批次详情 -->
+    <select id="getAppraisalInfo" parameterType="String" resultType = "Hb74" >
+		select  chb140, chb400, to_char(chb400, 'yyyy-MM-dd') as chb400_String, 
+				chb401, chb402, chb403, to_char(chb403, 'yyyy-MM-dd') as chb403_String,
+				chb404, chb405, chb406, to_char(chb406, 'yyyy-MM-dd') as chb406_String,
+				chb407, chb408, aae013, chb334, chb333, chb17c, chb341,chb401e, chb404e, chb407e 
+	    from hb74
+		where chb140 = #{chb140}
+	</select>
+   
+	<!-- 鉴定信息申请列表查询 -->
+	 <select id="getcheckAppraisalPlan" parameterType="String" resultType="Hb74">
+	   select aab001, chb140, chb126
+	   from hb74
+	   where aae100 = #{aae100} and chb140 = #{chb140}
+	 </select>
+
+	<!-- 鉴定计划新增 -->
+	<insert id="insertAppraisalPlan" parameterType="Hb74">
+    insert into hb74(CHB140,CHB146,AAE043,AAE100,AAE011,AAE036,CHB126,AAB001,CHB326)
+    values (
+        #{chb140,jdbcType=VARCHAR},
+        #{chb146,jdbcType=VARCHAR},
+        SYSDATE,
+        #{aae100,jdbcType=VARCHAR},
+        #{aae011,jdbcType=VARCHAR},
+        SYSDATE,
+        #{chb126,jdbcType=VARCHAR},
+        #{aab001,jdbcType=VARCHAR},
+        #{chb326,jdbcType=VARCHAR}
+      )
+  	</insert>
+
+  	<!-- 更新hb75表与hb74表的关联字段 -->
+  <update id="saveAppraisBatchHb74" parameterType="java.util.HashMap">
+    update hb75
+    set 
+    <if test = 'hb75map.chb146 != null and hb75map.chb146 != ""'>
+    	chb146 = #{hb75map.chb146,jdbcType=VARCHAR},
+    </if>
+    chb140 = #{hb75map.chb140,jdbcType=VARCHAR}
+    where chb120 in 
+    <foreach item="selectnodes" collection="hb75map.hb75list" open="(" separator="," close=")">
+    	#{selectnodes.chb120,jdbcType=VARCHAR}
+	</foreach>
+	and aae100 = #{hb75map.aae100,jdbcType=VARCHAR}
+	and chb312 = #{hb75map.chb312,jdbcType=VARCHAR}
+  </update>
+
+  <!-- 更新hb75表与hc63表的关联字段 -->
+  	<update id="saveAppraisBatchHc63" parameterType="java.util.HashMap">
+    update hc63
+    set 
+    chb140 = #{hb75map.chb140,jdbcType=VARCHAR}
+    where chb120 in 
+    <foreach item="selectnodes" collection="hb75map.hb75list" open="(" separator="," close=")">
+    	#{selectnodes.chb120,jdbcType=VARCHAR}
+	</foreach>
+	and aae100 = #{hb75map.aae100,jdbcType=VARCHAR}
+	and chb312 = #{hb75map.chb312,jdbcType=VARCHAR}
+  </update>
+
+  <!-- 查询申报数据中未被加入计划的批次信息/查询申报数据中已被加入本计划的批次信息 --> 
+  <select id="getAppraisalDeclareist" parameterType="Hb75Temp" resultType="Hb75Temp">
+	   select c.chb120,
+	   to_char(c.chb169, 'yyyy-MM-dd')chb169,
+	   (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = c.aca111)aca111, 
+	   (select l.name FROM smt_group l where l.groupid = aab001)aab001,
+	   (select code_name from code_value where code_type='ACA11A' and code_value = c.aca11a)aca11a, 
+	   c.chb168, 
+	   c.chb140,
+	   (select code_name from code_value where code_type='CHB312' and code_value = c.chb312)chb312,
+	   c.chb313, 
+	   (select code_name from code_value where code_type='CHB326' and code_value = c.chb326)chb326,
+	   c.chb314,
+	   (select code_name from code_value where code_type='CHB126' and code_value = c.chb126) as chb126_name, 
+	   chb126 
+	   from hb75 c
+	   where c.aae100 = #{aae100} 
+	   <if test = 'chb140 == "0"'>
+	   	and (c.chb140 = '' or c.chb140 IS NULL)
+	   </if>
+	   <if test = 'chb140 != "0"'>
+	   	and c.chb140 = #{chb140}
+	   </if>
+	   <if test = 'chb312 != null and chb312 != ""'>
+	   	and c.chb312 = #{chb312}
+	   </if>
+	   and c.aab101 = #{aab101}
+	   order by chb312,aae036 desc
+	 </select>
+
+	<!-- 查询已在批次学员信息 -->
+	<select id = "getAppraisThisStudentList" parameterType = "Hc60Temp_Short" resultType = "Hc60Temp_Short">
+	 	select a.chc001,
+	 	a.aac002, 
+	 	a.aac003, 
+	 	(select code_name from code_value where code_type='AAC004' and code_value = a.aac004) aac004, 
+	 	a.aae005,
+	 	(select code_name from code_value where code_type='CHC002' and code_value = a.chc002) chc002,
+	 	a.chb068,
+	 	(decode(sign((select count(1) from hc60 c 
+	 	left join hc66 d on c.chc001 = d.chc001
+	 	where c.chc001 = a.chc001
+	 	and c.czc018 = #{czc018} and c.aae100 = #{aae100} and d.chc018 = #{chc018} and d.aae100 = #{aae100})), 1, '已结业', '未结业'))aae013_jy,
+	 	(decode(sign((select count(1) from hc60 c 
+	 	left join hc63 d on c.chc001 = d.chc001 where c.chc001 = a.chc001 and d.aae100 = #{aae100})), 1, 'yes', 'no')) aae013_jdpc,
+		(decode(sign((select count(1) from hc60 c 
+	 	left join hc63 d on c.chc001 = d.chc001 where c.chc001 = a.chc001 and d.chb120 = #{chb120} and d.aae100 = #{aae100})), 1, 'yes', 'no')) aae013_jdzt,
+		'1' as chc038,
+		(select code_name from code_value where code_type='CHB312' and code_value = b.chb312)chb312,
+		b.chc063,
+		(SELECT M.FILE_REL_PATH
+          FROM S_FILE_RECORD M, S_BUS_FILE_RECORD N
+          WHERE M.FILE_UUID = N.FILE_UUID
+          AND N.BUS_UUID = b.BUS_UUID) photo_url
+	 	from hc63 b
+	 	left join hc60 a on a.chc001 = b.chc001
+	 	where a.aae100 = #{aae100} and b.aae100 = #{aae100} and b.chb120 = #{chb120}
+	 </select>
+
+	 <!-- 提交批次信息 -->
+	 <update id="savePerponSubmit" parameterType="hb74">
+	    update hb74
+	    <set> 
+	    aae043 = SYSDATE,
+	    aae011 = #{aae011,jdbcType=VARCHAR},
+	   	aae036 = SYSDATE,
+	   	<if test="chb146 != null">
+	   	chb146 =  #{chb146,jdbcType=VARCHAR},
+	   	</if>
+	   	<if test="aae013 != null">
+	   	aae013 =  #{aae013,jdbcType=VARCHAR},
+	   	</if>
+        chb400 = #{chb400,jdbcType=DATE},
+        chb401 = #{chb401,jdbcType=VARCHAR},
+        chb402 = #{chb402,jdbcType=VARCHAR},
+        chb403 = #{chb403,jdbcType=DATE},
+        chb404 = #{chb404,jdbcType=VARCHAR},
+        chb405 = #{chb405,jdbcType=VARCHAR},
+        chb406 = #{chb406,jdbcType=DATE},
+        chb407 = #{chb407,jdbcType=VARCHAR},
+        chb408 = #{chb408,jdbcType=VARCHAR},
+        <if test="chb334 != null">
+        	chb334 = #{chb334,jdbcType=VARCHAR},
+        </if>
+        chb401e = #{chb401e,jdbcType=VARCHAR},
+        chb404e = #{chb404e,jdbcType=VARCHAR},
+        chb407e = #{chb407e,jdbcType=VARCHAR},
+        chb326 =  #{chb326,jdbcType=VARCHAR}
+      </set>
+	    where chb140 = #{chb140,jdbcType=VARCHAR} and aae100 = #{aae100,jdbcType=VARCHAR}
+	  </update>
+
+	<!-- 更新鉴定批次中鉴定人员数量 -->
+	<update id="savePerponSum" parameterType="String">
+	    update hb74 a
+	    <set>
+	    	a.chb157 = (select count(*) from hc63 where chb140 = a.chb140 and aae100 = #{aae100,jdbcType=VARCHAR})
+	    </set>
+	    where a.chb140 = #{chb140,jdbcType=VARCHAR} and a.aae100 = #{aae100,jdbcType=VARCHAR}
+    </update>
+
+	<!-- 单个逻辑删除对应批次数据 -->
+	<update id="delAppraisalDeclare" parameterType="hb74">
+		update hb74
+	    <set>
+	    	aae100 = #{aae100,jdbcType=VARCHAR},
+	    	aae011 = #{aae011,jdbcType=VARCHAR},
+	   		aae036 = SYSDATE,
+	   		chb157 = 0
+	    </set>
+	    where chb140 = #{chb140,jdbcType=VARCHAR}
+	</update>
+
+	<!-- 批量逻辑删除对应批次数据 -->
+	<update id="delAppraisalDeclareBatch" parameterType="java.util.HashMap">
+		update hb74
+	    <set>
+	    	aae100 = #{hb74map.aae100,jdbcType=VARCHAR},
+	    	aae011 = #{hb74map.aae011,jdbcType=VARCHAR},
+	   		aae036 = SYSDATE,
+	   		chb157 = #{hb74map.chb157,jdbcType=VARCHAR}
+	    </set>
+	    where chb140 in 
+	    <foreach item="selectnodes" collection="hb74map.hb74list" open="(" separator="," close=")">
+	    	#{selectnodes.chb140,jdbcType=VARCHAR}
+		</foreach>
+	</update>
+
+	<!-- 清空hb75表与hb74表的关联字段 -->
+   <update id="delAppraisAllEmptyHb74" parameterType="java.util.HashMap">
+    update hb75
+    set 
+	   	chb146 = #{hb74map.chb146,jdbcType=VARCHAR},
+	    chb140 = null
+    where chb140 in 
+    <foreach item="selectnodes" collection="hb74map.hb74list" open="(" separator="," close=")">
+    	#{selectnodes.chb140,jdbcType=VARCHAR}
+	</foreach>
+  </update>
+
+  <!-- 清空hb75表与hc63表的关联字段 -->
+  	<update id="delAppraisAllEmptyHc63" parameterType="java.util.HashMap">
+    update hc63
+    set 
+    	chb140 = null
+    where chb140 in 
+    <foreach item="selectnodes" collection="hb74map.hb74list" open="(" separator="," close=")">
+    	#{selectnodes.chb140,jdbcType=VARCHAR}
+	</foreach>
+  </update>
+</mapper>

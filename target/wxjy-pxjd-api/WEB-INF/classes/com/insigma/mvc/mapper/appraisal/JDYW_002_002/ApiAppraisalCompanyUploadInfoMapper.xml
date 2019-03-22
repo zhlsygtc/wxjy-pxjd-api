@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.appraisal.JDYW_002_002.ApiAppraisalCompanyUploadInfoMapper">
+	<select id="getInfoList" parameterType="Ad01File" resultType="Ad01File">
+		select 
+		  a.ecd012,
+		  a.aab001,
+		  a.bus_uuid,
+		  a.aae013,
+		  a.aae011,
+		  a.aae012,
+		  to_char(b.file_addtime,'yyyy-mm-dd') as ecc064_str,
+		  a.aae036,
+		  a.eae052,
+		  a.aae100,
+		  a.aab025,
+		  b.file_rel_path,
+		  b.file_length,
+		  c.file_bus_name,
+		  c.file_bus_type
+		from
+		  ad01_file a,
+		  s_file_record b,
+		  s_bus_file_record c
+		where
+		  a.bus_uuid = c.bus_uuid and
+		  c.file_uuid = b.file_uuid and
+		  a.aab001 = #{aab001} and
+		  a.aae100 = '1'
+	</select>
+	<insert id="addAd01File" parameterType="Ad01File">
+		<selectKey resultType="java.lang.String" order="BEFORE" keyProperty="ecd012"> 
+            select sys_guid() from dual 
+     	</selectKey>
+     	insert into ad01_file
+	    <trim prefix="(" suffix=")" suffixOverrides=",">
+	        ecd012,
+	      <if test="aab001 != null">
+	        AAB001,
+	      </if>
+	      <if test="bus_uuid != null">
+	        BUS_UUID,
+	      </if>
+	      <if test="aae013 != null">
+	        AAE013,
+	      </if>
+	      <if test="aae011 != null">
+	        AAC004,
+	      </if>
+	      <if test="aae012 != null">
+	        AAE012,
+	      </if>
+	      <if test="ecc064 != null">
+	        ECC064,
+	      </if>
+	      <if test="aae036 != null">
+	        AAE036,
+	      </if>
+	      <if test="eae052 != null">
+	        EAE052,
+	      </if>
+	      <if test="aae100 != null">
+	        AAE100,
+	      </if>
+	      <if test="aab025 != null">
+	        AAB025,
+	      </if>
+	    </trim>
+	    <trim prefix="values (" suffix=")" suffixOverrides=",">
+	        #{ecd012,jdbcType=VARCHAR},
+	      <if test="aab001 != null">
+	        #{aab001,jdbcType=VARCHAR},
+	      </if>
+	      <if test="bus_uuid != null">
+	        #{bus_uuid,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae013 != null">
+	        #{aae013,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae011 != null">
+	        #{aae011,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae012 != null">
+	        #{aae012,jdbcType=DATE},
+	      </if>
+	      <if test="ecc064 != null">
+	        #{ecc064,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae036 != null">
+	        #{aae036,jdbcType=VARCHAR},
+	      </if>
+	      <if test="eae052 != null">
+	        #{eae052,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae100 != null">
+	        #{aae100,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aab025 != null">
+	        #{aab025,jdbcType=TIMESTAMP},
+	      </if>
+	    </trim>
+	</insert>
+	<delete id="delAd01File" parameterType="java.lang.String">
+	    delete from Ad01_File
+	    where bus_uuid = #{bus_uuid,jdbcType=VARCHAR}
+	</delete>
+	<delete id="delFileRecord" parameterType="java.lang.String">
+	    delete from s_file_record
+	    where file_uuid = #{file_uuid,jdbcType=VARCHAR}
+	</delete>
+	<delete id="delBusFileRecord" parameterType="java.lang.String">
+	    delete from s_bus_file_record
+	    where file_uuid = #{file_uuid,jdbcType=VARCHAR}
+	</delete>
+	<select id="getPhotoNum" parameterType="Ad01File" resultType="Ad01File">
+		select 
+		  count(*) photoNum
+		from 
+		  ad01_file a, 
+		  s_bus_file_record b 
+		where 
+		  a.bus_uuid = b.bus_uuid and 
+		  a.aab001 = #{aab001,jdbcType=VARCHAR} and 
+		  b.file_bus_type = '010402' 
+	</select>
+	<select id="getVideoNum" parameterType="Ad01File" resultType="Ad01File">
+		select 
+		  count(*) videoNum
+		from 
+		  ad01_file a, 
+		  s_bus_file_record b 
+		where 
+		  a.bus_uuid = b.bus_uuid and 
+		  a.aab001 = #{aab001,jdbcType=VARCHAR} and 
+		  b.file_bus_type = '010403' 
+	</select>
+	<select id="getMaxPhoto" parameterType="Ad01File" resultType="Ad01File">
+		select 
+		  filemaxnum maxPhoto 
+		from 
+		  s_filetype 
+		where 
+		  businesstype='010402'
+	</select>
+	<select id="getMaxVideo" parameterType="Ad01File" resultType="Ad01File">
+		select 
+		  filemaxnum maxVideo 
+		from 
+		  s_filetype 
+		where 
+		  businesstype='010403'
+	</select>
+</mapper>

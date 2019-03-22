@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.monitor.PXJG_001_004.ClassFileUploadMapper">
+       <!-- 通过id查询-->
+    <select id="getBusFileRecordListByBusId" parameterType="StuFileDTO" resultType="StuFileDTO">
+        SELECT
+        	c.aac002,
+        	c.aac003,
+            b.file_bus_id,
+            b.bus_uuid,
+            b.file_bus_name,
+            b.file_bus_description,
+            a.file_uuid,
+            a.file_name,
+            CASE WHEN a.file_length > 1024*1024 THEN round(a.file_length/(1024*1024), 2) || 'MB' ELSE round(a.file_length/1024, 2) || 'KB' END filesize,
+            a.file_status,
+            a.file_addtime,
+            a.file_type,
+            a.file_path,
+            a.file_rel_path,
+            (SELECT code_name FROM code_value t WHERE t.code_type='FILE_BUS_TYPE' AND code_value = b.file_bus_type) file_bus_type,
+            #{fileModule} || a.file_rel_path as file_web_path
+        FROM
+            s_file_record  a, s_bus_file_record b,hc60 c
+        WHERE
+            a.file_uuid=b.file_uuid AND
+            c.chc001=b.file_bus_id  AND c.eae052 = '1'
+        <if test="file_bus_id != null and file_bus_id != null">
+            AND c.chb068=#{file_bus_id}
+        </if>
+        <if test="chc001 != null and chc001 != null">
+            AND c.chc001=#{chc001}
+        </if>
+        <if test="file_bus_type != null and file_bus_type != null">
+            AND b.file_bus_type =#{file_bus_type}
+        </if>
+        ORDER BY c.chc066,c.aac002,file_addtime DESC
+    </select>
+    
+    
+      <!-- 通过id查询-->
+    <select id="getBusFileRecordListByBusId2" parameterType="StuFileDTO" resultType="StuFileDTO">
+        SELECT
+            c.chb069,
+        	c.chb158,
+        	to_char(c.chb160, 'yyyy-MM-dd') chb160,
+        	c.chb167,
+        	c.chb186,
+            b.file_bus_id,
+            b.bus_uuid,
+            b.file_bus_name,
+            b.file_bus_description,
+            a.file_uuid,
+            a.file_name,
+            CASE WHEN a.file_length > 1024*1024 THEN round(a.file_length/(1024*1024), 2) || 'MB' ELSE round(a.file_length/1024, 2) || 'KB' END filesize,
+            a.file_status,
+            a.file_addtime,
+            a.file_type,
+            a.file_path,
+            a.file_rel_path,
+            (SELECT code_name FROM code_value t WHERE t.code_type='FILE_BUS_TYPE' AND code_value = b.file_bus_type) file_bus_type,
+            #{fileModule} || a.file_rel_path as file_web_path
+        FROM
+            s_file_record  a, s_bus_file_record b,hb69 c
+        WHERE
+            a.file_uuid=b.file_uuid AND
+            c.chb069=b.file_bus_id  
+        <if test="file_bus_id != null and file_bus_id != null">
+            AND c.chb068=#{file_bus_id}
+        </if>
+        <if test="chb069 != null and chb069 != null">
+            AND c.chb069=#{chb069}
+        </if>
+        <if test="file_bus_type != null and file_bus_type != null">
+            AND b.file_bus_type =#{file_bus_type}
+        </if>
+        ORDER BY c.chb069,file_addtime DESC
+    </select>
+</mapper>

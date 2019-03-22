@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.app.APP_002_001.ApiSuiZhouTrainingMapper">
+    <select id="getLoginPerson" parameterType="Hb61" resultType="Hb61">
+        select chb061,aac002,password from hb61 where aac002 = #{aac002} and password = #{password}
+        and eae052 = '1' and aae100 = '1'
+    </select>
+
+    <update id="updateLoginInfo" parameterType="Hb61">
+        update hb61 set lastlogintime = sysdate,
+        logintimes = nvl(logintimes,0)+1,
+        lastloginip = #{lastloginip},
+        equipmenttype = #{equipmenttype},        loadstatus = '1',
+
+        phoneresolution = #{phoneResolution}
+        where aac002 = #{aac002}
+    </update>
+    <update id="quitSystem" parameterType="String">
+        update hb61 set loadstatus = '0'
+        where aac002 = #{aac002}
+    </update>
+
+    <select id="getTeacher" parameterType="String" resultType="Hb61">
+        select (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=a.bus_uuid) photo_url,
+        a.aac003,
+        (select name from smt_group s where s.groupid = a.aab001) aab001,
+        a.aac002
+        from hb61 a where a.chb061 = #{chb061}
+    </select>
+
+    <select id="getCurrentClass" parameterType="String" resultType="Hb68">
+        select * from (SELECT
+        (c.chb100 || ( SELECT aaa103 FROM v_aa10 WHERE aaa100 = 'ACA109' AND aaa102 = c.aca111 )) chb105,
+        ( SELECT aaa103 FROM v_aa10 WHERE aaa100 = 'ACA109' AND aaa102 = c.aca111 ) chb526,
+        TO_CHAR( chb107, 'yyyy/mm/dd' ) chb107,
+        TO_CHAR( chb108, 'yyyy/mm/dd' ) chb108,
+        c.chb068,
+        c.chb106
+        FROM
+        hb69 b,
+        hb68 c
+        WHERE
+        b.chb068 = c.chb068
+        AND b.aac002 = #{aca002}
+        AND to_date(SUBSTR( b.chb160, 1, 10 )) = to_date(SUBSTR( SYSDATE, 1, 10 ))
+        AND to_date( b.chb167, 'HH24:mi' ) - 1 / 48 <![CDATA[<=]]> to_date( to_char( SYSDATE, 'HH24:mi' ), 'HH24:mi' )
+        AND b.chb167 NOT IN ( ' ', '-' )
+        AND to_date( b.chb186, 'HH24:mi' ) >= to_date( to_char( SYSDATE, 'HH24:mi' ), 'HH24:mi' )
+        AND b.chb186 NOT IN (' ','-')
+				order by chb107 asc) where rownum = 1
+    </select>
+    
+    <select id="getCurrentCourse" parameterType="String" resultType="Hb69">
+        select * from (SELECT
+        b.chb158,
+        b.chb167,
+        b.chb186,
+        b.chb069
+        FROM
+        hb69 b
+        WHERE
+        b.aac002 = #{aca002}
+        AND to_date(SUBSTR( b.chb160, 1, 10 )) = to_date(SUBSTR( SYSDATE, 1, 10 ))
+        AND to_date( b.chb167, 'HH24:mi' ) - 1 / 48 <![CDATA[<=]]> to_date( to_char( SYSDATE, 'HH24:mi' ), 'HH24:mi' )
+        AND b.chb167 NOT IN ( ' ', '-' )
+        AND to_date( b.chb186, 'HH24:mi' ) >= to_date( to_char( SYSDATE, 'HH24:mi' ), 'HH24:mi' )
+        AND b.chb186 NOT IN (' ','-')
+			order by b.chb167 asc) where rownum = 1
+    </select>
+    
+    <select id="getNextCourse" parameterType="String" resultType="Hb69">
+        select * from (SELECT
+            b.chb158,
+            TO_CHAR(b.chb160,'yyyy-MM-dd') chb160,
+            (c.chb100 || ( SELECT aaa103 FROM v_aa10 WHERE aaa100 = 'ACA109' AND aaa102 = c.aca111 )) chb105,
+            b.chb167,
+            b.chb186,
+            c.chb106,
+            b.chb069
+        FROM
+            hb69 b,
+            hb68 c
+        WHERE
+            b.chb068 = c.chb068
+            AND b.aac002 = #{aca002}
+            AND b.chb167 NOT IN ( ' ', '-' )
+            AND to_date(
+                to_char( b.chb160, 'yyyy-MM-dd ' ) || DECODE( LENGTH( b.chb167 ), 4, '0' || b.chb167, 5, b.chb167 ),
+            'yyyy-MM-dd HH24:mi'
+            ) >= to_date(to_char(sysdate,'yyyy-MM-dd hh24:mi'),'yyyy-MM-dd hh24:mi')
+            order by chb160,chb167) where rownum = 1
+    </select>
+
+    <update id="updatePassword" parameterType="Hb61">
+        update hb61 set password = #{newPassword} where aac002 = #{aac002}
+    </update>
+
+    <select id="getCurrentClassDetail" parameterType="String" resultType="Hb68">
+        SELECT
+            (
+            c.chb100 || ( SELECT aaa103 FROM v_aa10 WHERE aaa100 = 'ACA109' AND aaa102 = c.aca111 )) chb301,
+            ( SELECT aaa103 FROM v_aa10 WHERE aaa100 = 'ACA109' AND aaa102 = c.aca111 ) chb526,
+            TO_CHAR( chb107, 'yyyy/mm/dd' ) chb107,
+            TO_CHAR( chb108, 'yyyy/mm/dd' ) chb108,
+            c.chb068 ,CHB106,AAE004,ACB502,CHB105 ,GPS_LON,GPS_LAT,
+            (SELECT
+                        count(m.file_rel_path)
+                    FROM
+                        s_file_record m,
+                        s_bus_file_record n
+                    WHERE
+                        m.file_uuid = n.file_uuid
+                        AND n.FILE_BUS_ID IN (
+                        SELECT
+                            chb069
+                        FROM
+                            hb69
+                        WHERE
+                            chb068 = #{chb068})) filesize
+        FROM
+            hb69 b RIGHT JOIN hb68 c
+            on b.chb068 = c.chb068
+            where b.chb068 = #{chb068} and ROWNUM = 1
+    </select>
+    
+    <select id="getCurrentClassCourseList" parameterType="String" resultType="Hb69">
+        SELECT
+            CHB069,
+            to_char(CHB160,'yyyy-MM-dd') CHB160,
+            CHB167,
+            CHB186,
+            CHB158,
+            AAC003,
+            ( SELECT chb063 FROM hb64 a WHERE a.chb064 = b.chb064 ) chb064,
+            (SELECT
+                        count(m.file_rel_path)
+                    FROM
+                        s_file_record m,
+                        s_bus_file_record n
+                    WHERE
+                        m.file_uuid = n.file_uuid
+                        AND n.FILE_BUS_ID = chb069) filenum
+        FROM
+            hb69 b
+        WHERE
+            CHB068 = #{chb068}
+        ORDER BY
+            chb160,
+            chb167
+    </select>
+
+    <select id="getCurrentCourseDetail" parameterType="String" resultType="Hb69DTO">
+        select   chb160,chb158,chb167,chb186,
+           decode(num-cdrc,'0','-',num-cdrc) zccq,
+         decode(cdrc,'0','-',cdrc) cdrc,
+           decode((total - num - qjrs),'0','-',(total - num - qjrs)) qqrc,
+           decode(qjrs,'0','-',qjrs) qjrs
+      from (select
+              to_char(a.chb160,'yyyy-MM-dd') chb160,
+              a.chb158,
+              a.chb167,
+              a.chb186,
+              (select count(1) from hc60 where chb068 = a.chb068 and aae100 = '1') total,
+              (select count(1) from zc10 c,hc60 d where d.chb068 = a.chb068 and c.chb069 = a.chb069) num,
+              (select count(1) from zc10 c,hc60 d where d.chb068 = a.chb068 and c.chb069 = a.chb069 and (to_date(to_char(c.edc362,'hh24:mi'),'hh24:mi') > to_date(a.chb167,'hh24:mi'))) cdrc,
+              (select count(1) from zc07 c,hc60 d where c.chc001 = d.chc001 and d.chb068 = a.chb068) qjrs
+              from hb69 a
+             where a.chb069 = #{chb069}
+             ) t
+    </select>
+    
+    <select id="getTrainingNum" parameterType="String" resultType="Integer">
+        SELECT
+            count(m.file_rel_path)
+        FROM
+            s_file_record m,
+            s_bus_file_record n
+        WHERE
+            m.file_uuid = n.file_uuid
+            AND n.FILE_BUS_ID IN (
+            SELECT
+                chb069
+            FROM
+                hb69
+            WHERE
+                chb068 = #{chb068})
+    </select>
+
+
+    <select id="getTrainingState" parameterType="String" resultType="Integer">
+        SELECT
+            count(m.file_rel_path)
+        FROM
+            s_file_record m,
+            s_bus_file_record n
+        WHERE
+            m.file_uuid = n.file_uuid
+            AND n.FILE_BUS_ID = #{chb069}
+    </select>
+
+    <select id="getTrainingVideoInfo" parameterType="String" resultType="Hb69">
+        SELECT
+            m.file_rel_path chc001,
+            to_char(m.FILE_ADDTIME,'yyyy-mm-dd hh24:mi:ss') chc111,
+            (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=b.bus_uuid) aac003,
+            a.aac003 chb100,
+            n.file_bus_description,
+            m.file_type,
+            m.file_bus_name
+        FROM
+            s_file_record m,
+            s_bus_file_record n,
+            hb69 a,
+			hb61 b
+        WHERE
+            m.file_uuid = n.file_uuid
+            AND n.FILE_BUS_ID = a.chb069
+			and a.aac002 = b.aac002
+            AND n.FILE_BUS_ID = #{chb069}
+        order by m.file_addtime desc
+    </select>
+
+    <select id="getStudents" parameterType="String" resultType="Hc61Dto">
+        select aac003,photo_url,
+           (case when (num+qjnum) = 0 then '4' when qjnum > 0 then '3' when cdnum>0 then '2' else '0' end) flag,
+               (case when (num+qjnum) = 0 then '缺勤' when qjnum > 0 then '请假' when cdnum>0 then '迟到' else '出勤' end) status,
+           (case when (cdnum+qjnum+num) = 1 then '1' else '0' end) cqnum,
+           (case when (num+qjnum) = 0 then '1' else '0' end) qqnum,
+           (case when cdnum = 0 then '0' else '1' end) cdnum,
+           (case when qjnum = 0 then '0' else '1' end) qjnum
+         from (select
+              a.aac003,
+              (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=c.bus_uuid) photo_url,
+              (select count(1) from zc10 where chc001 = a.chc001 and chb069 =b.chb069 ) num,
+              (select count(1) from zc10 where chc001 = a.chc001 and chb069 = b.chb069 and (to_date(to_char(edc362,'hh24:mi'),'hh24:mi') > to_date(b.chb167,'hh24:mi'))) cdnum,
+              (select count(1) from zc07 d,zc07_detail e where d.chc001 = a.chc001 and d.czc007 = e.czc007 and e.chb069 = b.chb069 ) qjnum
+              from hc60 a,hb69 b ,hc61 c
+             where b.aae100 = '1'
+               and a.chb068 = b.chb068
+               and a.chc111 = c.chc111
+               and b.chb069 = #{chb069}
+             order by a.chc066 ) t
+    </select>
+
+    <select id="getStudentInfoList" parameterType="String" resultType="Hc61Dto">
+        select
+          a.aac003,
+          (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=c.bus_uuid) photo_url,
+          a.aac002,
+          a.aae005
+      from hc60 a,hc61 c
+     where A.aae100 = '1'
+       and a.chb068 = (select chb068 from hb69 where chb069 = #{chb069})
+       and a.chc111 = c.chc111
+     order by a.chc066
+    </select>
+
+    <select id="getPastClassList" parameterType="String" resultType="Hb68">
+        SELECT
+        (c.chb100 || ( SELECT aaa103 FROM v_aa10 WHERE aaa100 = 'ACA109' AND aaa102 = c.aca111 )) chb105,
+        ( SELECT aaa103 FROM v_aa10 WHERE aaa100 = 'ACA109' AND aaa102 = c.aca111 ) chb526,
+        TO_CHAR( chb107, 'yyyy/mm/dd' ) chb107,
+        TO_CHAR( chb108, 'yyyy/mm/dd' ) chb108
+        ,c.chb068,
+        c.chb106,
+        (SELECT
+            count(1)
+        FROM
+            hb69 b
+        WHERE
+            CHB068 = #{chb068}) count,
+        (SELECT
+            count(m.file_rel_path)
+        FROM
+            s_file_record m,
+            s_bus_file_record n
+        WHERE
+            m.file_uuid = n.file_uuid
+            AND n.FILE_BUS_ID IN (
+            SELECT
+                chb069
+            FROM
+                hb69
+            WHERE
+                chb068 = #{chb068})) filesize
+        FROM
+        hb68 c
+        WHERE to_char( c.chb107, 'yyyy-MM-dd') <![CDATA[<]]> to_char(SYSDATE, 'yyyy-MM-dd' )
+        and exists (select 0 from hb69 where chb068 = c.chb068 and aac002 = #{aac002})
+    </select>
+
+    <select id="getVideoRecordInfo" parameterType="String" resultType="com.insigma.mvc.model.Hc82">
+        select * from (select * from hc82 where aac002 = #{aac002} order by aae036 desc)
+        where rownum = '1'
+    </select>
+
+    <update id="updateVideoRecordInfo" parameterType="String">
+        update hc82 set isconfirm = '1' where room = #{id}
+    </update>
+
+    <update id="updateSFileRecord" parameterType="SFileRecord">
+        update s_file_record set file_bus_name = #{file_bus_name}
+        where file_uuid = #{file_uuid}
+    </update>
+</mapper>

@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.train.PXYW_001_015.ApiStudentBaseMapper">
+  
+     <!-- 学员信息列表查询 -->
+	 <select id="getStudentList" parameterType="Student" resultType="Student">
+	   select 
+	    chc111,
+	    aac003,
+	    chc003,
+	    (select code_name from code_value where code_type='AAC004' and code_value = t.aac004) aac004,
+	    (select code_name from code_value where code_type='AAC005' and code_value = t.aac005) aac005,
+	    aac002,
+	    aae005,
+	    to_char(t.ecc064,'yyyy-MM-dd') ecc064,
+	    (select code_name from code_value where code_type='CHC002' and code_value = t.chc002) chc002,
+	    aac026,
+	    isselected,
+	    nvl(chc301,0) chc301
+	   from hc61 t
+	   <where> 
+	      exists (select 1 from hb59 a,hb65 b where a.aae100 = '1' and b.aae100 = '1' and a.chb055 = b.chb055 and a.chc111 = t.chc111 and b.aab001 = #{baseinfoid})
+	     <if test="aac002!=null">
+	       and t.aac002=#{aac002}
+	     </if>
+	     <if test="aac003!=null">
+	       and t.aac003 like '%'||#{aac003}||'%' 
+	     </if>
+	     <if test="ecc064_a!=null">
+	       and to_char(t.ecc064,'yyyy-MM-dd') &gt;= #{ecc064_a}
+	     </if>
+	     <if test="ecc064_b!=null">
+	       and to_char(t.ecc064,'yyyy-MM-dd') &lt;= #{ecc064_b}
+	     </if>
+	      order by t.ecc064 desc
+	   </where> 
+	 </select>
+  
+    <!-- 学员内码查询学员信息 -->
+	 <select id="getStudentById" parameterType="Student" resultType="Student">
+	   select 
+		    chc111,
+		    aac003,
+		    chc003,
+		    aac004,
+		    aac002,
+		    aac005,
+		    chc008,
+		    aae007,
+		    aae015,
+		    aae005,
+		    aac006,
+		    to_char(aac007,'yyyy-MM-dd') aac007_string,
+		    chc002,
+		    chc030,
+		    aca111,
+		    aac011,
+		    eec357,
+		    (select code_describe from code_value where code_value = t.eec357 and code_type = 'AAB301') eec357_s,
+		    eec358,
+		    (select code_describe from code_value where code_value = t.eec358 and code_type = 'AAB301') eec358_s,
+		    aae013,
+		    aae006,
+		    aac026,
+		    aab026,
+		    bus_uuid,
+		    aab001,
+		    (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=t.bus_uuid) photo_url
+	   from hc61 t
+	   <where> 
+	      	chc111 = #{chc111} 
+	   </where> 
+	 </select>
+	 
+	 <!-- 身份证查询学员信息 -->
+	 <select id="getStudentByCardId" parameterType="Hc61_temp" resultType="Student">
+ 		select * from hc61 t where aac002 = #{aac002} and aab001 = #{baseinfoid} and aae100 = '1'
+	 </select>
+	 
+	 <!-- 学员内码查询学员信息中文 -->
+	 <select id="getStudentGBKById" parameterType="Student" resultType="Student">
+	   select 
+		    chc111,
+		    aac003,
+		    chc003,
+		    (select code_name from code_value where code_type='AAC004' and code_value = t.aac004) aac004,
+		    aac002,
+		    (select code_name from code_value where code_type='AAC005' and code_value = t.aac005) aac005,
+		    aae005,
+		    to_char(aac006,'yyyy-MM-dd') aac006_string,
+		    to_char(aac007,'yyyy-MM-dd') aac007_string,
+		    (select code_name from code_value where code_type='CHC002' and code_value = t.chc002) chc002,
+		    (select code_name from code_value where code_type='AAC011' and code_value = t.aac011) aac011,
+		    (select code_describe from code_value where code_value = t.eec357 and code_type = 'AAB301') eec357,
+		    (select code_describe from code_value where code_value = t.eec358 and code_type = 'AAB301') eec358,
+		    (select code_name from code_value where code_type='ACA111' and code_value = t.aca111) aca111_s,
+		    (select code_name from code_value where code_type='AAC009' and code_value = t.chc008) chc008,
+		    (select code_name from code_value where code_type='CHC030' and code_value = t.chc030) chc030,
+		    (select name from smt_group where groupid = t.aab001) aab004,
+		    aab026,
+		    decode(length(t.aac002),'18',(to_char(sysdate,'yyyy')-substr(t.aac002,7,4)),(to_char(sysdate,'yyyy')-('19'||substr(t.aac002,7,2)))) age,
+		    aac026,
+		    (select code_name from code_value where code_type='CHB210' and code_value = (select chb210 from ca13 where aca111 = t.aca111)) planTime,
+		    aae013,
+		    to_char(t.aae036,'yyyy&quot;年&quot;MM&quot;月&quot;dd&quot;日&quot;') aae036_s,
+		    (case when chc008 = '11' or chc008 = '12' or chc030 is not null then '1' else '0' end) flag,
+		    bus_uuid,
+		    (select m.file_rel_path from s_file_record m,s_bus_file_record n where m.file_uuid=n.file_uuid and n.bus_uuid=t.bus_uuid) photo_url
+	   from hc61 t
+	   <where> 
+	      	chc111 = #{chc111} 
+	   </where> 
+	 </select>
+  
+    <!-- 更新学员信息 -->
+	  <update id="updateStu" parameterType="Student">
+	    update hc61
+	    <set>
+	      <if test="aac003 != null">
+	        AAC003 = #{aac003,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chc003 != null">
+	        chc003 = #{chc003,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aac005 != null">
+	        aac005 = #{aac005,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chc002 != null">
+	        chc002 = #{chc002,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chc008 != null">
+	        chc008 = #{chc008,jdbcType=VARCHAR},
+	      </if>
+	      <if test="eec357 != null">
+	        eec357 = #{eec357,jdbcType=VARCHAR},
+	      </if>
+	      <if test="eec358 != null">
+	        eec358 = #{eec358,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aac026 != null">
+	        aac026 = #{aac026,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae005 != null">
+	        aae005 = #{aae005,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae007 != null">
+	        aae007 = #{aae007,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae015 != null">
+	        aae015 = #{aae015,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chc030 != null">
+	        chc030 = #{chc030,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae006 != null">
+	        aae006 = #{aae006,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aab024 != null">
+	        aab024 = #{aab024,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aab025 != null">
+	        aab025 = #{aab025,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aab026 != null">
+	        aab026 = #{aab026,jdbcType=VARCHAR},
+	      </if>
+	      <if test="chc066 != null">
+            chc066 = #{chc066,jdbcType=DATE},
+          </if>
+	      <if test="aae036 != null">
+            aae036 = #{aae036,jdbcType=DATE},
+          </if>
+          <if test="ecc064_date != null">
+            ecc064 = #{ecc064_date,jdbcType=DATE},
+          </if>
+	      <if test="aac007_string != null">
+	        aac007 = to_date(#{aac007_string,jdbcType=VARCHAR},'yyyy-MM-dd'),
+	      </if>
+	      <if test="aac011 != null">
+	        aac011 = #{aac011,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aca111 != null">
+	        aca111 = #{aca111,jdbcType=VARCHAR},
+	      </if>
+	      <if test="aae013 != null">
+	        aae013 = #{aae013,jdbcType=VARCHAR},
+	      </if>
+	      <if test="isselected != null">
+	        isselected = #{isselected,jdbcType=VARCHAR},
+	      </if>
+	      <if test="bus_uuid != null">
+	        bus_uuid = #{bus_uuid,jdbcType=VARCHAR},
+	      </if>
+	    </set>
+	    where chc111 = #{chc111,jdbcType=VARCHAR}
+	  </update>  
+  
+  
+  
+  
+    <!-- 查询用户所属机构内码 -->
+    <select  id="getBaseinfoid"  parameterType="java.lang.String" resultType="java.lang.String">
+	    select baseinfoid from s_user where userid = #{aae011} 
+	</select>
+  
+  
+      <!-- 学员培训信息列表查询 -->
+	  <select id="getTrainClasses" parameterType="Student" resultType="Hb68">
+		  SELECT T.CHB068,
+			  CHB100,
+			  TO_CHAR(T.CHB107, 'yyyy-MM-dd') CHB107,
+			  TO_CHAR(T.CHB108, 'yyyy-MM-dd') CHB108,
+			  (SELECT CODE_NAME
+				  FROM CODE_VALUE
+				  WHERE CODE_TYPE = 'CHB103'
+				  AND CODE_VALUE = T.CHB103) CHB103,
+			  (SELECT aaa103
+				  FROM v_aa10
+				  WHERE aaa100 = 'ACA109'
+				  AND aaa102 = T.ACA111) ACA111,
+			  (SELECT CODE_NAME
+				  FROM CODE_VALUE
+				  WHERE CODE_TYPE = 'CHB111'
+				  AND CODE_VALUE = T.CHB111) CHB111,
+			  T2.CHC014,
+			  DECODE(SIGN(NVL(T2.CHC014, 0) - T3.CZC910), -1, '0', '1') CHC014_MARK,
+			  T2.CHC019,
+			  DECODE(SIGN(NVL(T2.CHC019, 0) - T3.CZC912), -1, '0', '1') CHC019_MARK,
+			  T2.CHC016,
+			  DECODE(SIGN(NVL(T2.CHC016, 0) - T3.CZC914), -1, '0', '1') CHC016_MARK,
+			  T2.CHC018
+	  	  FROM HB68 T
+	  	  JOIN HC60 T1
+			  ON T.CHB068 = T1.CHB068
+			  AND t.AAB001 = #{baseinfoid}
+			  AND T.AAE100 = '1'
+	      	  AND T1.CHC111 = #{chc111}
+	   	  	  AND T1.AAE100 = '1'
+	  	  LEFT JOIN HC66 T2
+			  ON T1.CHC001 = T2.CHC001
+	   		  AND T2.AAE100 = '1'
+	   	  JOIN ZC13 T3
+              ON T3.CZC013 = '1'
+	 	  ORDER BY T.CHB107 DESC
+	  </select>
+</mapper>

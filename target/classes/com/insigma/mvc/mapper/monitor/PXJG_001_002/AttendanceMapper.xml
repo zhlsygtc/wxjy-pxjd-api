@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.monitor.PXJG_001_002.AttendanceMapper">
+    <!-- 查询开班信息列表 -->
+    <select id="getInfoList" parameterType="Hb68" resultType="Hb68">
+     select
+        decode(nvl((select count(1)  from hc60 c where c.chb068= a.chb068 and c.eae052 = '1'), 0),0,'0','1') stu,
+        decode(nvl((select count(1)  from hb69 where chb068= a.chb068 and aae100 = '1'), 0),0,'0','1') cou,
+        nvl((select count(1)  from hc60 c where chb068= a.chb068 and c.eae052 = '1'), 0) count,
+        chb100,
+        chb068,
+        aae001,
+        chb315,
+        (select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102=a.aca111) aca111,
+        (select code_name from code_value where code_type = 'CHB103' and code_value=a.chb103) chb103,
+        chb106,
+        to_char(chb107, 'yyyy-MM-dd') chb107,
+        to_char(chb108, 'yyyy-MM-dd') chb108,
+        chb326,
+        decode(sign(sysdate-2-chb107),'1','0','1') flag,<!-- 随州特殊业务，开班两天内可以增加学员 --> 
+        (select code_name from code_value where code_type = 'CHB111' and code_value=a.chb111) chb111
+    from
+        HB68 a
+    where
+         aae100 = '1'
+    and  
+    	aab001 = #{aab001}
+    AND chb108 <![CDATA[>=]]> sysdate-30
+        <if test="chb100!=null">
+            and chb100=#{chb100}
+        </if>
+        <if test="aca111!=null">
+            and aca111 = #{aca111}
+        </if>
+        <if test="chb103!=null">
+            and chb103 in 
+            <foreach item="item" collection="chb103s" open="(" separator="," close=")">
+            	#{item}
+        	</foreach>
+        </if>
+        <if test="chb107!=null">
+        	and to_char(chb107,'yyyy-MM-dd') <![CDATA[>=]]> #{chb107}
+        </if>
+        <if test="chb108!=null">
+        	and to_char(chb108,'yyyy-MM-dd') <![CDATA[<=]]> #{chb108}
+        </if>
+        <if test="chb315!=null">
+            and chb315 in 
+            <foreach item="item" collection="chb315s" open="(" separator="," close=")">
+            	#{item}
+        	</foreach>
+        </if>
+        <if test="chb057!=null">
+            and a.chb057 = #{chb057}
+        </if>
+   			order by chb315,chb100 desc
+    </select>
+    
+    
+    <!-- 校验是否考勤 -->
+  <select id="checkZc02" parameterType="Zc02" resultType="Zc02">
+    select czc002,edc364,edc362,edc363,edc446,edc447,aac002
+    from Zc02
+    where aac002 = #{aac002} and chb100=#{chb100} and  edc364= trunc(SYSDATE)
+  </select>
+  
+  <select id="getHc60ByAac002" parameterType="Zc02" resultType="Hc60">
+    select 
+	  aac003,
+	  aac002,
+	  chc001,
+	  chc003,
+	  aae005,
+	  aae006,
+	  ecc064,
+	  aac001
+	from
+	  HC60  
+	where 
+	  aae100='1' and eae052 = '1'
+	  and aac002=#{aac002}
+	  and chb068=#{chb068}
+    </select>
+  
+   <!-- 新增信息 -->
+  <insert id="addAttendance" parameterType="Zc02">
+     <selectKey resultType="java.lang.String" order="BEFORE" keyProperty="czc002"> 
+            select sys_guid() from dual 
+     </selectKey>
+    insert into ZC02(
+        	        czc002,
+  					chc001,
+  					aab001,
+ 					chb100,
+ 					aac001 ,
+  					aac002,
+  					edc364,
+  					edc362,
+  					edc363,
+  					edc446,
+  					edc447,
+  					aae011,
+  					aae036,
+  					aae013
+   
+        )
+        values(
+			    #{czc002},
+  				#{chc001},
+  				#{aab001},
+ 				#{chb100},
+ 				#{aac001},
+  				#{aac002},
+  				trunc(SYSDATE),
+  				#{edc362},
+  				#{edc363},
+  				#{edc446},
+  				#{edc447},
+				#{aae011},
+				SYSDATE,
+				''
+          	 )
+    </insert>
+    
+  
+  <!-- 更新信息 -->
+  <update id="updateAttendance" parameterType="Zc02">
+    update zc02
+    <set>
+      <if test="edc362 != null">
+        edc362 = #{edc362},
+      </if>
+      <if test="edc363 != null">
+        edc363 = #{edc363},
+      </if>
+      <if test="edc446 != null">
+        edc446 = #{edc446},
+      </if>
+      <if test="edc447 != null">
+        edc447 = #{edc447},
+      </if>  
+      <if test="aae011 != null">
+        AAE011 = #{aae011},
+      </if>
+        aae036 = SYSDATE
+    </set>
+    where czc002 = #{czc002}
+  </update>
+  
+  
+</mapper>

@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.insigma.mvc.dao.appraisal.JDYW_002_008.ApiAppraisalStationAuditMapper">
+
+	 <!-- 鉴定信息申请列表查询 -->
+	 <select id="getAppraisalSpeciaList" parameterType="Hb75Temp" resultType="Hb75Temp"	>
+	   select c.chb120,
+	   to_char(c.chb169, 'yyyy-MM-dd')chb169,
+	   (select aaa103 from v_aa10 where aaa100='ACA109' and aaa102 = c.aca111)aca111, 
+	   d.name as aab001,
+	   (select code_name from code_value where code_type='ACA11A' and code_value = c.aca11a)aca11a, 
+	   c.chb168, 
+	   c.chb140,
+	   c.chb312,
+	   (select code_name from code_value where code_type='CHB312' and code_value = c.chb312)chb312_name,
+	   c.chb313, 
+	   (select code_name from code_value where code_type='CHB326' and code_value = c.chb326)chb326,
+	   (select code_name from code_value where code_type='CHB126' and code_value = c.chb126)chb126,
+	   chb314,
+	   (case when c.chb312 = '1' or c.chb312 = '9' then '2' when (select count(1) from hc63 where aae100 = '1' and chb120 = c.chb120 and chb312 != '0') > 0 then '1' else '0' end) flag
+	   from hb75 c, smt_group d
+	   where c.aae100 = #{aae100} 
+	   and d.groupid = c.aab001 
+	   <if test = 'chb126 != null and chb126 != ""'>
+	   		and c.chb126 = #{chb126}
+	   </if>
+	   <if test = 'chb326 != null and chb326 != ""'>
+	   		and c.chb326 = #{chb326}
+	   </if>
+	   <if test = 'aab101 != null and aab101 != ""'>
+	   		and c.aab101 = #{aab101}
+	   </if>
+	   <if test = 'aab001 != null and aab001 != ""'>
+	   		and c.aab001 = #{aab001}
+	   </if>
+	   <if test = 'aab001_name != null and aab001_name != ""'>
+	   		and d.name like '%'||#{aab001_name}||'%'
+	   </if>
+	   <if test = 'chb120 != null and chb120 != ""'>
+	   		and c.chb120 like '%'||#{chb120}||'%'
+	   </if>
+	   <if test = 'chb312 != null and chb312 != ""'>
+	   		and c.chb312 = #{chb312}
+	   </if>
+	   <if test = 'aca111 != null and aca111 != ""'>
+	   		and c.aca111 = #{aca111}
+	   </if>
+	   <if test = 'chb169 != null and chb169 != ""'>
+	   		and to_char(c.chb169,'yyyy-MM-dd') &gt;= #{chb169}
+	   </if>
+	   <if test = 'chb170 != null and chb170 != ""'>
+	   		and to_char(c.chb169,'yyyy-MM-dd') &lt; #{chb170}
+	   </if>
+	   order by c.chb312,c.aae036 desc
+	 </select>
+
+     <!-- 获取申报的培训机构 -->
+     <select id="getTrainComName" parameterType="CodeValue" resultType="CodeValue">
+         select distinct a.aab001 code_value,t.name code_name from hb75 a,smt_group t where a.aab001 = t.groupid and a.aab101 = #{code_value}
+     </select>
+
+	 <!-- 鉴定所站审核记录详情查询 -->
+	  <select id = "getAppraisalInfo" parameterType = "String" resultType = "Hb75">
+	  	select chb120, to_char(chb400, 'yyyy-MM-dd')as chb400_String, chb401, chb402, to_char(chb403, 'yyyy-MM-dd')chb403_String, chb404, chb405, to_char(chb406, 'yyyy-MM-dd')chb406_String, chb407, chb408, aae013, aae004, aae005,
+	  	(select aaa103 from v_aa10 where aaa100 = 'ACA109' and aaa102 = t.aca111) aca111,
+	  	(select aaa103 from v_aa10 where aaa100 = 'ACA11A' and aaa102 = t.aca11a) aca11a
+	  	from HB75 t
+	  	where chb120 = #{chb120}
+	  </select>
+
+	 <!-- 查询已结业学员信息 -->
+	 <select id = "getAppraisStudentNotSubmitList" parameterType = "Hc60Temp_Short" resultType = "Hc60Temp_Short">
+	 	select a.chc001,
+	 	b.aac002, 
+	 	b.aac003, 
+	 	(select code_name from code_value where code_type='AAC004' and code_value = b.aac004) aac004, 
+	 	b.aae005,
+	 	(select code_name from code_value where code_type='CHC002' and code_value = b.chc002) chc002,
+	 	b.chb068,
+	 	(decode(sign((select count(1) from hc60 c 
+	 	left join hc66 d on c.chc001 = d.chc001
+	 	where c.chc001 = a.chc001
+	 	and c.czc018 = #{czc018} and c.aae100 = #{aae100} and d.chc018 = #{chc018} and d.aae100 = #{aae100})), 1, '已结业', '未结业'))aae013_jy,
+	 	(decode(sign((select count(1) from hc60 c 
+	 	left join hc63 d on c.chc001 = d.chc001 where c.chc001 = a.chc001 and d.aae100 = #{aae100})), 1, 'yes', 'no')) aae013_jdpc,
+		(decode(sign((select count(1) from hc60 c 
+	 	left join hc63 d on c.chc001 = d.chc001 where c.chc001 = a.chc001 and d.chb120 = #{chb120} and d.aae100 = #{aae100})), 1, 'yes', 'no')) aae013_jdzt,
+		'1' as chc038,
+		(select code_name from code_value where code_type='CHB312' and code_value = a.chb312) chb312,
+		a.chc063
+	 	from hc63 a
+	 	left join hc60 b on a.chc001 = b.chc001 
+	 	where a.chb120 = #{chb120} and a.aae100 = #{aae100} and b.aae100 = #{aae100} 
+	 </select>
+
+   <!-- 查询已在批次学员信息 -->
+	<select id = "getAppraisThisStudentList" parameterType = "Hc60Temp_Short" resultType = "Hc60Temp_Short">
+	 	select a.chc001,
+	 	a.aac002, 
+	 	a.aac003, 
+	 	(select code_name from code_value where code_type='AAC004' and code_value = a.aac004) aac004, 
+	 	a.aae005,
+	 	(select code_name from code_value where code_type='CHC002' and code_value = a.chc002) chc002,
+	 	a.chb068,
+	 	(decode(sign((select count(1) from hc60 c 
+	 	left join hc66 d on c.chc001 = d.chc001
+	 	where c.chc001 = a.chc001
+	 	and c.czc018 = #{czc018} and c.aae100 = #{aae100} and d.chc018 = #{chc018} and d.aae100 = #{aae100})), 1, '已结业', '未结业'))aae013_jy,
+	 	(decode(sign((select count(1) from hc60 c 
+	 	left join hc63 d on c.chc001 = d.chc001 where c.chc001 = a.chc001 and d.aae100 = #{aae100})), 1, 'yes', 'no')) aae013_jdpc,
+		(decode(sign((select count(1) from hc60 c 
+	 	left join hc63 d on c.chc001 = d.chc001 where c.chc001 = a.chc001 and d.chb120 = #{chb120} and d.aae100 = #{aae100})), 1, 'yes', 'no')) aae013_jdzt,
+		'1' as chc038,
+		(select code_name from code_value where code_type='CHB312' and code_value = b.chb312)chb312,
+		b.chc063,
+		(SELECT M.FILE_REL_PATH
+          FROM S_FILE_RECORD M, S_BUS_FILE_RECORD N
+          WHERE M.FILE_UUID = N.FILE_UUID
+          AND N.BUS_UUID = b.BUS_UUID) photo_url
+	 	from hc63 b
+	 	left join hc60 a on a.chc001 = b.chc001
+	 	where a.aae100 = #{aae100} and b.aae100 = #{aae100} and b.chb120 = #{chb120}
+	 </select>
+
+  <!-- 更新鉴定批次信息 -->
+  <update id="saveAppraisBatch" parameterType="Hb75">
+    update hb75
+    <set>
+      <if test="aae013 != null">
+      	AAC003 = #{aae013,jdbcType=VARCHAR},
+      </if>
+      <if test="aae004 != null">
+        AAE004 = #{aae004,jdbcType=VARCHAR},
+      </if>
+      <if test="aae005 != null">
+       AAE005 = #{aae005,jdbcType=VARCHAR},
+      </if>
+      <if test="aab101 != null">
+       AAB101 = #{aab101,jdbcType=VARCHAR},
+      </if>
+       <if test="chb400 != null">
+       CHB400 = #{chb400,jdbcType=DATE},
+      </if>
+       <if test="chb401 != null">
+       CHB401 = #{chb401,jdbcType=VARCHAR},
+      </if>
+      <if test="chb402 != null">
+       CHB402 = #{chb402,jdbcType=VARCHAR},
+      </if>
+      <if test="chb403 != null">
+       CHB403 = #{chb403,jdbcType=DATE},
+      </if>
+      <if test="chb404 != null">
+       CHB404 = #{chb404,jdbcType=VARCHAR},
+      </if>
+      <if test="chb405 != null">
+       CHB405 = #{chb405,jdbcType=VARCHAR},
+      </if>
+      <if test="chb406 != null">
+       CHB406 = #{chb406,jdbcType=DATE},
+      </if>
+      <if test="chb407 != null">
+       CHB407 = #{chb407,jdbcType=VARCHAR},
+      </if>
+      <if test="chb408 != null">
+       CHB408 = #{chb408,jdbcType=VARCHAR},
+      </if>
+      <if test="aae100 != null">
+       AAE100 = #{aae100,jdbcType=VARCHAR},
+      </if>
+      <if test="chb169 != null">
+       CHB169 = #{chb169,jdbcType=DATE},
+      </if>
+      <if test="chb310 != null">
+       CHB310 = #{chb310,jdbcType=VARCHAR},
+      </if>
+      <if test="chb311 != null">
+       CHB311 = #{chb311,jdbcType=DATE},
+      </if>
+      <if test="chb146 != null">
+       CHB146 = #{chb146,jdbcType=VARCHAR},
+      </if>
+      <if test="chb326 != null">
+       CHB326 = #{chb326,jdbcType=VARCHAR},
+      </if>
+      <if test="chb312 != null">
+       CHB312 = #{chb312,jdbcType=VARCHAR},
+      </if>
+      <if test="chb314 != null">
+       CHB314 = #{chb314,jdbcType=VARCHAR},
+      </if>
+       CHB313 = SYSDATE,
+       CHB327 = #{chb327,jdbcType=VARCHAR},
+       AAE036 = #{aae036,jdbcType=DATE}
+    </set>
+    where chb120 = #{chb120,jdbcType=VARCHAR}
+  </update>
+  
+  <!-- 批量删除学员鉴定所站审核 -->
+  <update id="saveStudentBatch" parameterType="Hc63">
+    update hc60
+    <set>
+    chb256 = #{aae011,jdbcType=VARCHAR}
+    </set>
+    where chc001 in (select chc001 from hc63 a where a.chb120 = #{chb120,jdbcType=VARCHAR} and a.aae100 = #{aae100,jdbcType=VARCHAR})
+    and aae100 = #{aae100,jdbcType=VARCHAR}
+  </update>
+
+  <!-- 学员审核情况查询 -->
+  <select id = "getPerponAuditInfo" parameterType = "String" resultType = "Hc63Temp_Short">
+  	select chc063, chb312, chb313, chc001 from hc63
+  	where chc063 = #{chc063,jdbcType=VARCHAR}
+  </select>
+
+  <!-- 查询本批次中未通过申请数目 -->
+  <select id = "getPerponAuditIsPass" parameterType = "String" resultType = "Hc63Temp_Short">
+  	select count(*) as chb312_all from hc63
+  	where chb120 = #{chb120,jdbcType=VARCHAR} and chb312 = #{chb312,jdbcType=VARCHAR} and aae100 = #{aae100,jdbcType=VARCHAR}
+  </select>
+
+  <!-- 鉴定所站批次审核时  批量修改批次中包含的学员数据使用  -->
+  <!-- 单个学员审核时 使用 -->
+  <update id="savePerponAudit" parameterType="Hc63Temp_Short">
+    update hc63
+    <set>
+    chb312 = #{chb312,jdbcType=VARCHAR},
+    chb313 = SYSDATE,
+    chb314 = #{chb314,jdbcType=VARCHAR},
+    chb327 = #{chb327,jdbcType=VARCHAR}
+    </set>
+    where aae100 = #{aae100,jdbcType=VARCHAR}
+    <if test = 'chc063 != null and chc063 != ""'>
+    	and chc063 = #{chc063,jdbcType=VARCHAR}
+    </if>
+     <if test = 'chb120 != null and chb120 != ""'>
+    	and chb120 = #{chb120,jdbcType=VARCHAR}
+    </if>
+  </update>
+
+  <!-- 批量修改学员信息 鉴定被打回后 鉴定结果状态修改为未鉴定状态 -->
+  <update id="savePerponInfoAuditBath" parameterType="java.util.HashMap">
+    update hc60
+    <set>
+    chb256 = #{hc60map.chb256,jdbcType=VARCHAR}
+    </set>
+    where aae100 = #{hc60map.aae100,jdbcType=VARCHAR}
+    and chc001 in 
+    <foreach item="selectnodes" collection="hc60map.hc60list" open="(" separator="," close=")">
+    	#{selectnodes.chc001,jdbcType=VARCHAR}
+	</foreach>
+  </update>
+
+</mapper>
